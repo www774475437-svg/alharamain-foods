@@ -14,6 +14,7 @@ window.BRANCHES = [
     ar: "هامترامك – جوزيف كامبو", en: "Hamtramck – Joseph Campau",
     addr: "9027 Joseph Campau Ave, Hamtramck, MI 48212",
     phone: "(313) 875-8920", lat: 42.3929, lng: -83.0583,
+    manager: { name: "مدير فرع 1 (مؤقت)", phone: "+10000000001", email: "manager1@example.com" },
     color: "#b3121a",
     banner: { ar: "أهلًا بكم في فرع جوزيف كامبو", en: "Welcome to our Joseph Campau store" },
     // عروض هذا الفرع: اكتب جزءًا من اسم المنتج والسعر الجديد
@@ -26,6 +27,7 @@ window.BRANCHES = [
     ar: "هامترامك – كانيف", en: "Hamtramck – Caniff",
     addr: "3306 Caniff Ave, Hamtramck, MI 48212",
     phone: "(313) 870-9748", lat: 42.4001, lng: -83.0571,
+    manager: { name: "مدير فرع 2 (مؤقت)", phone: "+10000000002", email: "manager2@example.com" },
     color: "#0c5a36",
     banner: { ar: "أهلًا بكم في فرع كانيف — الفرع الأول", en: "Welcome to Caniff — our original store" },
     deals: [], hide: [], extra: []
@@ -35,6 +37,7 @@ window.BRANCHES = [
     ar: "فارمنجتون – أورتشارد ليك", en: "Farmington – Orchard Lake",
     addr: "24065 Orchard Lake Rd, Farmington, MI 48336",
     phone: "(248) 476-0300", lat: 42.4647, lng: -83.3598,
+    manager: { name: "مدير فرع 3 (مؤقت)", phone: "+10000000003", email: "manager3@example.com" },
     color: "#0c3b26",
     banner: { ar: "أهلًا بكم في فرع فارمنجتون", en: "Welcome to our Farmington store" },
     deals: [], hide: [], extra: []
@@ -44,6 +47,7 @@ window.BRANCHES = [
     ar: "فارمنجتون هيلز – 12 مايل", en: "Farmington Hills – 12 Mile",
     addr: "33250 W 12 Mile Rd, Farmington Hills, MI 48334",
     phone: "(248) 994-0700", lat: 42.4989, lng: -83.3742,
+    manager: { name: "مدير فرع 4 — 12 مايل (مؤقت)", phone: "+13138003056", email: "manager4@example.com" },
     color: "#8a5a00",
     banner: { ar: "أهلًا بكم في فرع 12 مايل", en: "Welcome to our 12 Mile store" },
     deals: [], hide: [], extra: []

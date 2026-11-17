@@ -327,3 +327,14 @@ img{display:block;max-width:100%}
 /* ── صورة فارغة: اسم المنتج بدل المربع الأبيض ── */
 .pic.noimg img{display:none}
 .pic.noimg::after{content:attr(data-name);display:flex;align-items:center;justify-content:center;height:100%;min-height:140px;padding:14px;box-sizing:border-box;text-align:center;font-weight:800;color:var(--red);direction:ltr;font-family:var(--fe);line-height:1.35}
+
+/* ── الإعدادات والإعلان الصباحي وزر تسجيل الدخول ── */
+.login-txt{font-size:.85rem;font-weight:800;padding:8px 12px;white-space:nowrap}
+.settings{margin:18px 0}
+.settings h2{margin:0 0 8px}
+.set-row{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:8px;font:inherit;font-weight:700;cursor:pointer;text-align:start}
+.set-row b{color:var(--muted,#888);font-size:1.2rem}
+.sw{position:relative;width:44px;height:26px;border-radius:13px;background:#cfc7bd;flex-shrink:0}
+.sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+.sw.on{background:var(--green-2,#1f7a4d)}
+.sw.on::after{inset-inline-start:21px}

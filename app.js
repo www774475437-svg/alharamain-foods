@@ -310,6 +310,7 @@ function vCart(){
       <div class="row tot"><span>${t("total")}</span><b>${money(sub + fee)}</b></div><small>${t("taxNote")}</small></div>
     <button class="big wa" data-wa="1">💬 ${t("sendWa")}</button>
     <div class="cart-tools"><button class="alt-btn" data-copy="1">${t("shareCart")}</button><button class="alt-btn" data-sharelist="1">${t("shareList")}</button></div>
+    <button class="big alt" data-iatbranch="1">📍 ${L2() === "ar" ? "أخبر الفرع بوصولي" : "Tell the store I'm here"}</button>
     <div class="soon-grid pay">${["🍎 Apple Pay", "🅿️ PayPal", "🤖 Google Pay"].map(x => `<button class="soon-btn" data-soon="1">${x}<small>${t("soon")}</small></button>`).join("")}</div>
     <a class="big alt" href="tel:${b.phone.replace(/\D/g,"")}">📞 ${t("callStore")} · <span dir="ltr">${b.phone}</span></a>`;
 }
@@ -324,7 +325,25 @@ function storeCards(){
       <a href="tel:${b.phone.replace(/\D/g,"")}" dir="ltr">📞 ${b.phone}</a>
       <a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.addr)}">🗺 ${t("dir")}</a></div></div>`).join("");
 }
-const vStores = () => `<div class="page-h"><h1>📍 ${t("stores")}</h1></div>` + storeCards() + vSoon();
+const vStores = () => `<div class="page-h"><h1>📍 ${t("stores")}</h1></div>` + storeCards() + vSettings() + vSoon();
+function vSettings(){
+  const ar = L2() === "ar", on = ls.get("morning", false);
+  return `<section class="settings"><h2>⚙️ ${ar ? "الإعدادات" : "Settings"}</h2>
+    <button class="set-row" data-setting="morning"><span>🌅 ${ar ? "إعلان الصباح بعروض فرعي" : "Morning deals for my store"}</span><b class="sw ${on ? "on" : ""}"></b></button>
+    <button class="set-row" data-welcome-again="1"><span>👋 ${ar ? "عرض شاشة الترحيب من جديد" : "Show the welcome screens again"}</span><b>›</b></button>
+  </section>`;
+}
+function morningNote(){
+  if (!loaded || !ls.get("morning", false) || !branchId) return;
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/Detroit" });
+  if (ls.get("morningDay", "") === today) return;
+  ls.set("morningDay", today);
+  const b = branch(), ar = L2() === "ar", sale = window.HR_SALE_ACTIVE ? window.HR_SALE_ACTIVE(b.id)[0] : null;
+  const flash = (window.HR_ADS ? window.HR_ADS(b.id) : []).find(a => a.endsAt && a.endsAt > Date.now());
+  const body = sale ? `${esc(sale.title[ar ? "ar" : "en"])} · ${esc(sale.dates[ar ? "ar" : "en"])}` : flash ? esc(flash.title) : (ar ? "تصفح عروض فرعك اليوم" : "Browse today's store deals");
+  openSheet(`<span class="pd-cat">🌅 ${ar ? "صباح الخير" : "Good morning"}</span><h2>${esc(bName(b))}</h2><p>${body}</p>
+    <a class="big" href="${sale ? "#/sale" : "#/c/deals"}" data-close="1">${ar ? "تصفح العروض" : "Browse deals"}</a>`);
+}
 
 /* ── صفحات نموذجية (تُستبدل بمحتوى الحرمين الحقيقي) ── */
 const SAMPLE = {
@@ -422,7 +441,7 @@ function openProduct(k){
       :`<button class="big" data-inc="${esc(k)}">+ ${t("add")}</button>`}</div>` : ""}`, k);
 }
 function pickBranch(id, quiet){
-  branchId = id; ls.set("branch", id); closeSheet(); refresh(); setTimeout(showWelcome, 350);
+  branchId = id; ls.set("branch", id); closeSheet(); refresh(); setTimeout(() => { showWelcome(); morningNote(); }, 350);
   if (!quiet) toast(`${t("switched")} ${bName(branch())}`);
 }
 function locate(auto){
@@ -442,8 +461,11 @@ function sendOrder(){
 }
 
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close],[data-addgroup],[data-share],[data-rate],[data-mode],[data-copy],[data-sharelist],[data-addlist],[data-wskip],[data-wnext],[data-wprev]");
+  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close],[data-addgroup],[data-share],[data-rate],[data-mode],[data-copy],[data-sharelist],[data-addlist],[data-wskip],[data-wnext],[data-wprev],[data-setting],[data-welcome-again],[data-iatbranch]");
   if (!el) return; const d = el.dataset;
+  if (d.setting === "morning") { ls.set("morning", !ls.get("morning", false)); route(); toast(ls.get("morning", false) ? "✓" : "—"); return; }
+  if (d.welcomeAgain) { ls.set("welcomed", false); showWelcome(); return; }
+  if (d.iatbranch) { const b = branch(); const msg = `${t("order")}\n${t("branch")}: ${b.en}\n📍 I'm at the store now, please prepare my order.`; window.open(`https://wa.me/${b.whatsapp||""}?text=${encodeURIComponent(msg)}`, "_blank"); return; }
   if (d.wskip) return closeWelcome();
   if (d.wnext) return welcomeGo(1);
   if (d.wprev) return welcomeGo(-1);
@@ -544,7 +566,7 @@ fetch("catalog.json").then(r => r.json()).then(d => {
   CAT_IDS = d.c;
   const seen = {};
   ALL = d.p.map(r => ({ k:(seen[r[0]] = (seen[r[0]]||0)+1) > 1 ? r[0]+" #"+seen[r[0]] : r[0], name:r[0], s:norm(r[0]), price:r[1], old:r[2], stock:r[3], img:r[4], cat:CAT_IDS[r[5]] || "other", deal:!!(r[6]&1) || (r[2]>r[1]), pop:!!(r[6]&2) }));
-  loaded = true; refresh(); if (branchId) showWelcome();
+  loaded = true; refresh(); if (branchId) { showWelcome(); setTimeout(morningNote, 1500); }
 }).catch(() => { $("#view").innerHTML = `<div class="empty"><i>⚠️</i>catalog.json</div>`; });
 if (!branchId) { openSheet(`<h2>${t("chooseStore")}</h2>` + storeCards()); locate(true); }
 else if (navigator.permissions) navigator.permissions.query({name:"geolocation"}).then(s => { if (s.state === "granted") locate(true); }).catch(()=>{});

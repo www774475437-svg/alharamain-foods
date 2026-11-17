@@ -74,19 +74,27 @@ async function loadCustomer(){
 }
 
 /* ── الدخول والصلاحيات ── */
+let staffErr = "";   // سبب عدم العثور على الصلاحيات (يظهر للمالك فقط للتشخيص)
+const OWNER_EMAIL = "www774475437@gmail.com";
 async function loadStaff(){
-  staff = null;
+  staff = null; staffErr = "";
   if (!user || !user.email) return;
   const email = user.email.toLowerCase();
-  const snap = await getDoc(doc(db, "staff", email));
-  staff = snap.exists() ? snap.data() : null;
+  try {
+    const snap = await getDoc(doc(db, "staff", email));
+    staff = snap.exists() ? snap.data() : null;
+    if (!snap.exists()) staffErr = "لا يوجد مستند staff بالمعرّف: " + email;
+    else if (!staff.role) staffErr = "المستند موجود لكن بلا حقل role";
+  } catch (e) {
+    staffErr = "تعذّر قراءة الصلاحيات: " + (e.code || e.message);
+  }
   if (staff && staff.role === "owner") {
     onSnapshot(collection(db, "staff"), s => { staffList = []; s.forEach(d => staffList.push({ id: d.id, ...d.data() })); renderIfOpen(); });
   }
 }
 onAuthStateChanged(auth, async u => {
   user = u;
-  await loadStaff();
+  try { await loadStaff(); } catch (e) { staffErr = e.message; }
   if (user) { try { await loadCustomer(); } catch (e) { console.warn("account", e.message); } }
   adminReady = true;
   syncHeader();
@@ -119,6 +127,7 @@ function view(){
   if (!staff) return `<div class="page-h"><h1>👤 حسابي</h1></div>
     <p><b>${esc(user.displayName || "")}</b> <span dir="ltr">${esc(user.email || "")}</span></p>
     <p>مفضلتك محفوظة مع حسابك، وتظهر على أي جهاز تسجل فيه.</p>
+    ${user.email && user.email.toLowerCase() === OWNER_EMAIL && staffErr ? `<p class="count" dir="ltr">⚠️ ${esc(staffErr)}</p>` : ""}
     <button class="big alt" data-ad="signout">تسجيل الخروج</button>`;
   if (staff.role === "owner") return ownerView();
   return toolsView();

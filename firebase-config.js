@@ -10,4 +10,4 @@ export const FIREBASE_CONFIG = {
 };
 
 // مفتاح موقع reCAPTCHA v3 (عام، ليس سرياً). يُملأ بعد إنشائه من Google reCAPTCHA
-export const RECAPTCHA_SITE_KEY = "";
+export const RECAPTCHA_SITE_KEY = "6LfAJSUuAAAAANLskhWVtOfyAAUu7qRu92-kVZ6P";

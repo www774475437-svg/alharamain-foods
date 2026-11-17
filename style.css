@@ -207,7 +207,7 @@ img{display:block;max-width:100%}
   .top{padding:0 28px 16px;display:grid;grid-template-columns:auto 320px 1fr auto;column-gap:18px;align-items:center}
   .top::before{grid-column:1/-1;margin:0 -28px 10px}
   .top-row{display:contents}
-  .lang{order:4}
+  .top-actions{order:4;max-width:none}
   .branch-pill,.search{margin-top:0}
   .top.compact .brand img{height:52px}
   #view{padding:26px 28px 0}
@@ -236,3 +236,12 @@ img{display:block;max-width:100%}
 .top .lang[hidden]{display:none}
 
 .ai-out{white-space:pre-wrap;background:#fff;border-radius:12px;padding:12px;margin-top:10px;min-height:2em}
+
+/* ترتيب أزرار الأعلى حتى لا تتداخل مع اسم المتجر */
+.brand{flex:1}
+.brand span{min-width:0}
+.brand b{font-size:clamp(1.1rem,5.4vw,1.7rem);overflow-wrap:anywhere}
+.top-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px;flex-shrink:0;max-width:44%}
+.lang.icon{padding:6px 9px}
+.lang.icon.in{background:var(--green-2);border-color:var(--green-2)}
+@media (max-width:480px){.brand img{height:62px}.brand{gap:8px}}

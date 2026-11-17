@@ -96,7 +96,7 @@ onAuthStateChanged(auth, async u => {
 /* أزرار الأعلى: «حسابي» للجميع، و«المطورين» للمالك و«فرعي» للمدير فقط */
 function syncHeader(){
   const acc = document.querySelector("#accBtn"), dev = document.querySelector("#devBtn");
-  if (acc) acc.textContent = user ? "👤 حسابي" : "👤 دخول";
+  if (acc) acc.classList.toggle("in", !!user);
   if (dev) {
     const isOwner = !!staff && staff.role === "owner", isMgr = !!staff && staff.role === "manager";
     dev.hidden = !(isOwner || isMgr);

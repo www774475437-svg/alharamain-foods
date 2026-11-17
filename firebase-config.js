@@ -8,3 +8,6 @@ export const FIREBASE_CONFIG = {
   messagingSenderId: "764340703207",
   appId: "1:764340703207:web:b9d2f7c178a2c008713742"
 };
+
+// مفتاح موقع reCAPTCHA v3 (عام، ليس سرياً). يُملأ بعد إنشائه من Google reCAPTCHA
+export const RECAPTCHA_SITE_KEY = "";

@@ -214,7 +214,7 @@ const SOON_FEATURES = {
 const vSoon = () => {
   const L = L2() === "ar" ? "ar" : "en";
   return `<div class="soon-grid">` + SOON_FEATURES[L].map(f => `<button class="soon-btn" data-soon="1">${f}<small>${t("soon")}</small></button>`).join("") + `</div>` +
-    `<div class="soon-grid"><a class="soon-btn" href="#/help">❓ ${L==="ar"?"الأسئلة الشائعة":"FAQ"}</a><a class="soon-btn" href="#/recipes">🍲 ${L==="ar"?"وصفات":"Recipes"}</a></div>`;
+    `<div class="soon-grid"><a class="soon-btn" href="#/ai">🤖 ${L==="ar"?"المساعد الذكي":"AI assistant"}</a><a class="soon-btn" href="#/help">❓ ${L==="ar"?"الأسئلة الشائعة":"FAQ"}</a><a class="soon-btn" href="#/recipes">🍲 ${L==="ar"?"وصفات":"Recipes"}</a></div>`;
 };
 
 /* ── التوجيه ── */
@@ -227,6 +227,7 @@ function route(){
   else if (a === "cart") { html = vCart(); tab = "cart"; }
   else if (a === "fav") { html = vFav(); tab = "fav"; }
   else if (a === "stores") { html = vStores(); tab = "stores"; }
+  else if (a === "ai") { html = window.HR_AI ? window.HR_AI.view() : "<p>…</p>"; tab = "stores"; }
   else if (a === "help" || a === "recipes") { html = vTemplate(a); tab = "stores"; }
   else if (a === "acc") { html = window.HR_ADMIN ? window.HR_ADMIN.view() : `<div class="empty">…</div>`; tab = "stores"; }
   else html = vHome();

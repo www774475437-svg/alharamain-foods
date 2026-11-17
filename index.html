@@ -2,312 +2,57 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>الحرمين للأغذية العالمية | Al-Haramain International Foods</title>
-<meta name="description" content="الحرمين للأغذية العالمية في فارمنجتون، ميشيغان — منتجات عربية وهندية وباكستانية وآسيوية وغربية من أكثر من ٣٠ دولة. طازج، سهل، وبأسعار مناسبة.">
-<meta name="theme-color" content="#0f4c3a">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌴</text></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Al-Haramain International Foods | الحرمين للأغذية العالمية</title>
+<meta name="description" content="Al-Haramain International Foods — 4 stores in Hamtramck, Farmington and Farmington Hills, Michigan. Shop 2,500+ international products.">
+<meta name="theme-color" content="#b3121a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="https://static.wixstatic.com/media/4435d4_6f9fa8d03ed046b9ad56bd215b2c9239~mv2.jpeg/v1/fit/w_96,h_96,q_90/logo.jpeg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://static.wixstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div class="app">
 
-<!-- شريط علوي -->
-<div class="topbar">
-  <div class="wrap topbar-in">
-    <span data-t="topbar">🚚 توصيل محلي واستلام من المتجر — منتجات من أكثر من ٣٠ دولة</span>
-    <button class="lang-btn" id="langBtn">English</button>
-  </div>
+  <header class="top" id="top">
+    <div class="top-row">
+      <a class="brand" href="#/">
+        <img id="logo" alt="" width="46" height="46">
+        <span><b id="brandName"></b><small id="brandSub"></small></span>
+      </a>
+      <button class="lang" id="langBtn"></button>
+    </div>
+    <button class="branch-pill" id="branchBtn">
+      <span class="pin">📍</span>
+      <span class="bp-text"><small id="bpLabel"></small><b id="bpName"></b></span>
+      <span class="chev">▾</span>
+    </button>
+    <label class="search">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" autocomplete="off">
+      <button type="button" id="qClear" hidden>✕</button>
+    </label>
+  </header>
+
+  <main id="view"></main>
+
+  <nav class="tabbar">
+    <a href="#/" data-tab="home"><svg viewBox="0 0 24 24"><path d="M3 11 12 3l9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span data-t="home"></span></a>
+    <a href="#/cats" data-tab="cats"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span data-t="cats"></span></a>
+    <a href="#/cart" class="fab" data-tab="cart" aria-label="cart"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h10.2L20 7H6.2"/><circle cx="9" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg><i id="cartBadge" hidden></i></a>
+    <a href="#/fav" data-tab="fav"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg><span data-t="fav"></span></a>
+    <a href="#/stores" data-tab="stores"><svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.500C5 14.800 12 21 12 21z"/><circle cx="12" cy="9.500" r="2.500"/></svg><span data-t="stores"></span></a>
+  </nav>
 </div>
 
-<!-- الترويسة -->
-<header class="header" id="header">
-  <div class="wrap header-in">
-    <button class="icon-btn menu-btn" id="menuBtn" aria-label="القائمة">☰</button>
-    <a href="#" class="logo">
-      <span class="logo-mark">🌴</span>
-      <span class="logo-text">
-        <b data-t="brand">الحرمين</b>
-        <small data-t="brandSub">للأغذية العالمية</small>
-      </span>
-    </a>
-    <div class="search">
-      <input id="searchInput" type="search" data-tp="searchPh" placeholder="ابحث عن تمر، عسل، أرز، بهارات...">
-      <span class="search-ico">🔍</span>
-    </div>
-    <nav class="nav" id="nav">
-      <a href="#categories" data-t="navCats">الأقسام</a>
-      <a href="#deals" data-t="navDeals">العروض</a>
-      <a href="#shop" data-t="navShop">المتجر</a>
-      <a href="#about" data-t="navAbout">من نحن</a>
-      <a href="#contact" data-t="navContact">تواصل</a>
-    </nav>
-    <button class="icon-btn cart-btn" id="cartBtn" aria-label="السلة">🛒<span class="badge" id="cartCount">0</span></button>
-  </div>
-</header>
-
-<!-- البطل -->
-<section class="hero">
-  <div class="hero-pattern"></div>
-  <div class="wrap hero-in">
-    <div class="hero-text">
-      <span class="pill" data-t="heroPill">✨ متجرك العربي في فارمنجتون</span>
-      <h1 data-t="heroTitle">طازج، سهل،<br>وبأسعار مناسبة</h1>
-      <p data-t="heroDesc">كل ما تحتاجه من المنتجات العربية والهندية والباكستانية والآسيوية والغربية — تمور، عسل، لحوم حلال طازجة، وخبز يُخبز يوميًا.</p>
-      <div class="hero-actions">
-        <a href="#shop" class="btn btn-gold" data-t="heroBtn1">ابدأ التسوق الآن</a>
-        <a href="#deals" class="btn btn-ghost" data-t="heroBtn2">عروض الأسبوع</a>
-      </div>
-      <div class="hero-stats">
-        <div><b>+30</b><span data-t="stat1">دولة</span></div>
-        <div><b>+1000</b><span data-t="stat2">منتج</span></div>
-        <div><b>100%</b><span data-t="stat3">لحوم حلال</span></div>
-      </div>
-    </div>
-    <div class="hero-art">
-      <div class="orb orb1">🌴</div>
-      <div class="orb orb2">🍯</div>
-      <div class="orb orb3">🥙</div>
-      <div class="orb orb4">🫒</div>
-      <div class="orb orb5">☕</div>
-      <div class="hero-card">
-        <span>🔥</span>
-        <div><b data-t="heroCardT">خبز طازج يوميًا</b><small data-t="heroCardS">من الفرن إلى مائدتك</small></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- مميزات -->
-<section class="features wrap">
-  <div class="feature"><span>🥩</span><div><b data-t="f1t">لحوم حلال</b><small data-t="f1s">ذبح يومي طازج</small></div></div>
-  <div class="feature"><span>🌍</span><div><b data-t="f2t">+30 دولة</b><small data-t="f2s">منتجات أصلية</small></div></div>
-  <div class="feature"><span>💰</span><div><b data-t="f3t">أسعار مناسبة</b><small data-t="f3s">عروض أسبوعية</small></div></div>
-  <div class="feature"><span>🚗</span><div><b data-t="f4t">استلام سريع</b><small data-t="f4s">اطلب واستلم</small></div></div>
-</section>
-
-<!-- الأقسام -->
-<section class="section" id="categories">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2 data-t="catsTitle">تسوّق حسب القسم</h2>
-      <p data-t="catsSub">أكثر من ١٨ قسمًا تجد فيها كل ما يحتاجه بيتك</p>
-    </div>
-    <div class="cats" id="catsGrid"></div>
-  </div>
-</section>
-
-<!-- العروض -->
-<section class="section deals-sec" id="deals">
-  <div class="wrap">
-    <div class="deal-banner">
-      <div>
-        <span class="pill pill-dark" data-t="dealPill">⏰ لفترة محدودة</span>
-        <h2 data-t="dealTitle">عروض الأسبوع</h2>
-        <p data-t="dealSub">وفّر على مشترياتك الأساسية — تنتهي العروض خلال:</p>
-        <div class="countdown" id="countdown">
-          <div><b id="cdD">0</b><small data-t="cdD">يوم</small></div>
-          <div><b id="cdH">0</b><small data-t="cdH">ساعة</small></div>
-          <div><b id="cdM">0</b><small data-t="cdM">دقيقة</small></div>
-          <div><b id="cdS">0</b><small data-t="cdS">ثانية</small></div>
-        </div>
-      </div>
-      <div class="deal-emoji">🏷️</div>
-    </div>
-    <div class="rail" id="dealsRail"></div>
-  </div>
-</section>
-
-<!-- مختارات التمور والعسل -->
-<section class="section">
-  <div class="wrap">
-    <div class="showcase">
-      <div class="show-card show-dates">
-        <div>
-          <h3 data-t="datesT">ركن التمور الفاخرة</h3>
-          <p data-t="datesS">مجدول، سكري، عجوة، خلاص... أصناف كثيرة مختارة بعناية</p>
-          <button class="btn btn-gold" data-cat="dates" data-t="shopNow">تسوّق الآن</button>
-        </div>
-        <span class="show-emoji">🌴</span>
-      </div>
-      <div class="show-card show-honey">
-        <div>
-          <h3 data-t="honeyT">عسل السدر والسقطري</h3>
-          <p data-t="honeyS">عسل يمني أصيل من أجود المناحل</p>
-          <button class="btn btn-dark" data-cat="honey" data-t="shopNow">تسوّق الآن</button>
-        </div>
-        <span class="show-emoji">🍯</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- الأكثر مبيعًا -->
-<section class="section">
-  <div class="wrap">
-    <div class="sec-head row">
-      <div>
-        <h2 data-t="bestTitle">الأكثر مبيعًا</h2>
-        <p data-t="bestSub">المنتجات المفضلة لدى عملائنا</p>
-      </div>
-    </div>
-    <div class="rail" id="bestRail"></div>
-  </div>
-</section>
-
-<!-- المتجر الكامل -->
-<section class="section shop-sec" id="shop">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2 data-t="shopTitle">جميع المنتجات</h2>
-      <p id="shopCount"></p>
-    </div>
-    <div class="toolbar">
-      <div class="chips" id="chips"></div>
-      <select id="sortSel">
-        <option value="def" data-t="sortDef">الترتيب: المقترح</option>
-        <option value="low" data-t="sortLow">السعر: من الأقل</option>
-        <option value="high" data-t="sortHigh">السعر: من الأعلى</option>
-        <option value="name" data-t="sortName">الاسم</option>
-      </select>
-    </div>
-    <div class="grid" id="productsGrid"></div>
-    <div class="empty" id="emptyState" hidden>
-      <span>🔎</span>
-      <p data-t="noResults">لا توجد نتائج، جرّب كلمة أخرى</p>
-    </div>
-  </div>
-</section>
-
-<!-- من نحن -->
-<section class="section about" id="about">
-  <div class="wrap about-in">
-    <div class="about-art">
-      <div class="about-tile">🥙</div><div class="about-tile">🌶️</div>
-      <div class="about-tile">🧀</div><div class="about-tile">🍊</div>
-    </div>
-    <div>
-      <span class="pill" data-t="aboutPill">من نحن</span>
-      <h2 data-t="aboutTitle">بيتك الثاني في التسوق</h2>
-      <p data-t="aboutP1">الحرمين للأغذية العالمية متجر بقالة في فارمنجتون بولاية ميشيغان، نجمع لك المنتجات العربية والهندية والباكستانية والآسيوية والغربية تحت سقف واحد.</p>
-      <p data-t="aboutP2">نحرص على الجودة والطزاجة، ونوفّر لحومًا حلالًا، وخبزًا يُخبز يوميًا، وتشكيلة واسعة من التمور والعسل والبهارات من أكثر من ٣٠ دولة.</p>
-      <ul class="checks">
-        <li data-t="ch1">✅ منتجات أصلية من بلدها</li>
-        <li data-t="ch2">✅ لحوم ودواجن حلال طازجة</li>
-        <li data-t="ch3">✅ أسعار منافسة وعروض مستمرة</li>
-        <li data-t="ch4">✅ خدمة عملاء بالعربية والإنجليزية</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<!-- آراء -->
-<section class="section">
-  <div class="wrap">
-    <div class="sec-head">
-      <h2 data-t="whyTitle">لماذا يختارنا العملاء؟</h2>
-    </div>
-    <div class="why">
-      <div class="why-card"><span>🧺</span><h4 data-t="w1t">كل شيء في مكان واحد</h4><p data-t="w1s">من البقالة إلى العطور والبخور ومستلزمات الأطفال.</p></div>
-      <div class="why-card"><span>🌿</span><h4 data-t="w2t">طزاجة يومية</h4><p data-t="w2s">خضار وفواكه وخبز ولحوم تصل يوميًا.</p></div>
-      <div class="why-card"><span>🤝</span><h4 data-t="w3t">خدمة تعرفك</h4><p data-t="w3s">فريق يتحدث لغتك ويفهم احتياجات بيتك.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- التواصل -->
-<section class="section contact" id="contact">
-  <div class="wrap contact-in">
-    <div class="contact-card">
-      <h2 data-t="contactTitle">زورونا أو تواصلوا معنا</h2>
-      <div class="c-row"><span>📍</span><div><b data-t="addrL">العنوان</b><p id="addrText"></p></div></div>
-      <div class="c-row"><span>📞</span><div><b data-t="phoneL">الهاتف</b><p><a id="phoneLink" href="#" dir="ltr"></a></p></div></div>
-      <div class="c-actions">
-        <a id="callBtn" class="btn btn-gold" href="#" data-t="callBtn">📞 اتصل الآن</a>
-        <a id="mapBtn" class="btn btn-ghost-dark" target="_blank" rel="noopener" href="#" data-t="mapBtn">🗺️ الاتجاهات</a>
-      </div>
-    </div>
-    <div class="map-box">
-      <iframe title="map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-        src="https://maps.google.com/maps?q=24065%20Orchard%20Lake%20Rd%20Farmington%20MI%2048336&z=15&output=embed"></iframe>
-    </div>
-  </div>
-</section>
-
-<!-- النشرة -->
-<section class="newsletter">
-  <div class="wrap news-in">
-    <div>
-      <h3 data-t="newsT">لا تفوّت العروض!</h3>
-      <p data-t="newsS">اشترك ليصلك جديد العروض كل أسبوع</p>
-    </div>
-    <form id="newsForm" class="news-form">
-      <input type="email" required data-tp="emailPh" placeholder="بريدك الإلكتروني">
-      <button class="btn btn-gold" data-t="subBtn">اشترك</button>
-    </form>
-  </div>
-</section>
-
-<footer class="footer">
-  <div class="wrap foot-in">
-    <div>
-      <div class="logo light"><span class="logo-mark">🌴</span><span class="logo-text"><b data-t="brand">الحرمين</b><small data-t="brandSub">للأغذية العالمية</small></span></div>
-      <p data-t="footAbout">طازج، سهل، وبأسعار مناسبة — منتجات من أكثر من ٣٠ دولة.</p>
-    </div>
-    <div>
-      <h5 data-t="footLinks">روابط</h5>
-      <a href="#categories" data-t="navCats">الأقسام</a>
-      <a href="#deals" data-t="navDeals">العروض</a>
-      <a href="#shop" data-t="navShop">المتجر</a>
-      <a href="#about" data-t="navAbout">من نحن</a>
-    </div>
-    <div>
-      <h5 data-t="footHelp">مساعدة</h5>
-      <a href="#contact" data-t="ship">الشحن والإرجاع</a>
-      <a href="#contact" data-t="pay">طرق الدفع</a>
-      <a href="#contact" data-t="terms">الشروط والأحكام</a>
-    </div>
-  </div>
-  <div class="foot-bottom" data-t="copy">© الحرمين للأغذية العالمية — جميع الحقوق محفوظة</div>
-</footer>
-
-<!-- سلة جانبية -->
-<div class="overlay" id="overlay"></div>
-<aside class="drawer" id="drawer" aria-hidden="true">
-  <div class="drawer-head">
-    <h3 data-t="cartTitle">سلة التسوق</h3>
-    <button class="icon-btn" id="closeCart">✕</button>
-  </div>
-  <div class="drawer-body" id="cartItems"></div>
-  <div class="drawer-foot">
-    <div class="free-ship" id="freeShip"></div>
-    <div class="total-row"><span data-t="total">الإجمالي</span><b id="cartTotal">$0.00</b></div>
-    <button class="btn btn-gold full" id="checkoutBtn" data-t="checkout">إرسال الطلب عبر واتساب</button>
-    <button class="btn btn-link full" id="clearCart" data-t="clear">إفراغ السلة</button>
-  </div>
-</aside>
-
-<!-- نافذة المنتج -->
-<div class="modal" id="modal" hidden>
-  <div class="modal-box">
-    <button class="icon-btn modal-x" id="modalX">✕</button>
-    <div id="modalBody"></div>
-  </div>
-</div>
-
-<!-- زر عائم للهاتف -->
-<nav class="bottom-nav">
-  <a href="#"><span>🏠</span><small data-t="bnHome">الرئيسية</small></a>
-  <a href="#categories"><span>🗂️</span><small data-t="navCats">الأقسام</small></a>
-  <a href="#deals"><span>🏷️</span><small data-t="navDeals">العروض</small></a>
-  <a href="#" id="bnCart"><span>🛒</span><small data-t="bnCart">السلة</small></a>
-</nav>
-
+<div class="scrim" id="scrim"></div>
+<section class="sheet" id="sheet" aria-hidden="true"><div class="grab"></div><div id="sheetBody"></div></section>
 <div class="toast" id="toast"></div>
 
-<script src="products.js"></script>
+<script src="branches.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

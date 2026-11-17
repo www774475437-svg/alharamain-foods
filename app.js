@@ -1,201 +1,295 @@
 (() => {
-const S = window.STORE, CATS = window.CATEGORIES, P = window.PRODUCTS;
-const $ = s => document.querySelector(s), $$ = s => document.querySelectorAll(s);
-const FREE_SHIP = 75;
+"use strict";
+const $ = s => document.querySelector(s);
+const BR = window.BRANCHES, CATS = window.CATS, BRAND = window.BRAND;
+const PAGE = 40;
 
-const T = {
-  ar: {},
-  en: {
-    topbar:"🚚 Local delivery & store pickup — products from 30+ countries", brand:"Al-Haramain", brandSub:"International Foods",
-    searchPh:"Search dates, honey, rice, spices...", navCats:"Categories", navDeals:"Deals", navShop:"Shop", navAbout:"About", navContact:"Contact",
-    heroPill:"✨ Your international market in Farmington", heroTitle:"Fresh, Convenient,<br>and Affordable",
-    heroDesc:"Everything you need from Middle Eastern, Indian, Pakistani, Asian and Western products — dates, honey, fresh halal meat and bread baked daily.",
-    heroBtn1:"Start Shopping Now", heroBtn2:"Weekly Deals", stat1:"Countries", stat2:"Products", stat3:"Halal Meat",
-    heroCardT:"Fresh bread daily", heroCardS:"From our oven to your table",
-    f1t:"Halal Meat", f1s:"Fresh every day", f2t:"30+ Countries", f2s:"Authentic products", f3t:"Great Prices", f3s:"Weekly deals", f4t:"Fast Pickup", f4s:"Order & collect",
-    catsTitle:"Shop by Category", catsSub:"18+ departments with everything your home needs",
-    dealPill:"⏰ Limited time", dealTitle:"Weekly Deals", dealSub:"Save on your essentials — deals end in:", cdD:"Days", cdH:"Hours", cdM:"Min", cdS:"Sec",
-    datesT:"Premium Dates Corner", datesS:"Medjool, Sukkari, Ajwa, Khalas... carefully selected", honeyT:"Sidr & Socotra Honey", honeyS:"Authentic Yemeni honey from the finest apiaries", shopNow:"Shop Now",
-    bestTitle:"Best Sellers", bestSub:"Our customers' favorites", shopTitle:"All Products",
-    sortDef:"Sort: Recommended", sortLow:"Price: Low to High", sortHigh:"Price: High to Low", sortName:"Name", noResults:"No results — try another word",
-    aboutPill:"About Us", aboutTitle:"Your second home for shopping",
-    aboutP1:"Al-Haramain International Foods is a grocery store in Farmington, Michigan, bringing Middle Eastern, Indian, Pakistani, Asian and Western products under one roof.",
-    aboutP2:"We care about quality and freshness, offering halal meat, bread baked daily, and a wide range of dates, honey and spices from over 30 countries.",
-    ch1:"✅ Authentic imported products", ch2:"✅ Fresh halal meat & poultry", ch3:"✅ Competitive prices & ongoing deals", ch4:"✅ Service in Arabic & English",
-    whyTitle:"Why customers choose us", w1t:"Everything in one place", w1s:"From groceries to perfumes, bakhoor and baby products.", w2t:"Daily freshness", w2s:"Produce, bread and meat arriving every day.", w3t:"Service that knows you", w3s:"A team that speaks your language and knows your home.",
-    contactTitle:"Visit or contact us", addrL:"Address", phoneL:"Phone", callBtn:"📞 Call Now", mapBtn:"🗺️ Directions",
-    newsT:"Don't miss the deals!", newsS:"Subscribe to get new offers every week", emailPh:"Your email", subBtn:"Subscribe",
-    footAbout:"Fresh, convenient and affordable — products from over 30 countries.", footLinks:"Links", footHelp:"Help", ship:"Shipping & Returns", pay:"Payment Methods", terms:"Terms & Conditions",
-    copy:"© Al-Haramain International Foods — All rights reserved", cartTitle:"Shopping Cart", total:"Total", checkout:"Send order via WhatsApp", clear:"Clear cart",
-    bnHome:"Home", bnCart:"Cart",
-    // dynamic
-    all:"All", items:"products", add:"Add to cart", added:"Added to cart ✓", cartEmpty:"Your cart is empty", startShop:"Start shopping",
-    freeLeft:"Add {x} more for free delivery 🚚", freeOk:"🎉 You've unlocked free delivery!", subOk:"Subscribed successfully 🌿",
-    orderHi:"Hello, I'd like to order:", orderTotal:"Total", cleared:"Cart cleared", fav:"Saved to favorites ❤️", unfav:"Removed from favorites", prods:"products"
-  }
+/* ── نصوص الواجهة ── */
+const TX = {
+  ar: { home:"الرئيسية", cats:"الأقسام", fav:"المفضلة", stores:"الفروع", search:"ابحث عن أرز، شاي، تمر، بهارات…",
+    shopFrom:"تتسوّق من فرع", change:"تغيير", deals:"عروض الفرع", popular:"الأكثر طلبًا", all:"عرض الكل", allCats:"كل الأقسام",
+    add:"أضف للسلة", oos:"غير متوفر", inStock:"متوفر", cart:"السلة", emptyCart:"سلتك فارغة", emptyFav:"لا توجد منتجات في المفضلة بعد",
+    start:"ابدأ التسوق", bill:"الفاتورة", items:"عدد القطع", subtotal:"المجموع", taxNote:"الضريبة والمجموع النهائي يؤكدهما الفرع عند تجهيز الطلب.",
+    sendWa:"إرسال الطلب عبر واتساب", call:"اتصال", callStore:"اتصل بالفرع لتأكيد الطلب", dir:"الاتجاهات", pick:"اختيار", picked:"الفرع الحالي ✓",
+    nearest:"الأقرب إليك", locate:"📍 حدّد أقرب فرع إليّ", locating:"جارٍ تحديد موقعك…", locFail:"تعذّر تحديد الموقع — اختر الفرع يدويًا",
+    chooseStore:"اختر الفرع", mi:"ميل", results:"نتيجة", noRes:"لا توجد نتائج", products:"منتج", more:"عرض المزيد", sale:"عرض", hot:"رائج",
+    added:"أضيف إلى السلة ✓", switched:"تم التحويل إلى", clear:"إفراغ السلة", cleared:"تم إفراغ السلة", pickup:"الاستلام من",
+    sortDef:"المقترح", sortLow:"الأقل سعرًا", sortHigh:"الأعلى سعرًا", onlyStock:"المتوفر فقط",
+    heroTag:"+2500 منتج", heroP:"منتجات عالمية من أكثر من 30 دولة", order:"طلب جديد من تطبيق الحرمين", branch:"الفرع", total:"المجموع",
+    priceNote:"الأسعار من متجر الحرمين الإلكتروني وقد تختلف قليلًا بين الفروع." },
+  en: { home:"Home", cats:"Categories", fav:"Favorites", stores:"Stores", search:"Search rice, tea, dates, spices…",
+    shopFrom:"Shopping from", change:"Change", deals:"Store deals", popular:"Most popular", all:"See all", allCats:"All categories",
+    add:"Add to cart", oos:"Out of stock", inStock:"In stock", cart:"Cart", emptyCart:"Your cart is empty", emptyFav:"No favorites yet",
+    start:"Start shopping", bill:"Summary", items:"Items", subtotal:"Subtotal", taxNote:"Tax and final total are confirmed by the store when your order is prepared.",
+    sendWa:"Send order via WhatsApp", call:"Call", callStore:"Call the store to confirm", dir:"Directions", pick:"Select", picked:"Current store ✓",
+    nearest:"Nearest to you", locate:"📍 Find my nearest store", locating:"Finding your location…", locFail:"Couldn't get location — pick a store manually",
+    chooseStore:"Choose your store", mi:"mi", results:"results", noRes:"No results", products:"products", more:"Show more", sale:"Deal", hot:"Popular",
+    added:"Added to cart ✓", switched:"Switched to", clear:"Clear cart", cleared:"Cart cleared", pickup:"Pickup from",
+    sortDef:"Recommended", sortLow:"Price: low", sortHigh:"Price: high", onlyStock:"In stock only",
+    heroTag:"2,500+ products", heroP:"International products from 30+ countries", order:"New order from the Al-Haramain app", branch:"Store", total:"Total",
+    priceNote:"Prices come from Al-Haramain's online store and may vary slightly between stores." }
 };
-const ARD = {
-  all:"الكل", items:"منتج", add:"أضف إلى السلة", added:"تمت الإضافة إلى السلة ✓", cartEmpty:"سلتك فارغة", startShop:"ابدأ التسوق",
-  freeLeft:"أضف {x} للحصول على توصيل مجاني 🚚", freeOk:"🎉 حصلت على توصيل مجاني!", subOk:"تم الاشتراك بنجاح 🌿",
-  orderHi:"السلام عليكم، أريد طلب:", orderTotal:"الإجمالي", cleared:"تم إفراغ السلة", fav:"أضيف إلى المفضلة ❤️", unfav:"أزيل من المفضلة", prods:"منتجات"
-};
+// كلمات بحث عربية ← إنجليزية (أسماء المنتجات بالإنجليزية)
+const SYN = { "ارز":"rice","رز":"rice","شاي":"tea","قهوه":"coffee","بن":"coffee","تمر":"dates","تمور":"dates","عسل":"honey","زيت":"oil","زيتون":"olive","سمن":"ghee",
+  "بهارات":"masala","كمون":"cumin","كركم":"turmeric","فلفل":"pepper","هيل":"cardamom","قرفه":"cinnamon","زعفران":"saffron","زنجبيل":"ginger","ثوم":"garlic",
+  "معكرونه":"pasta","مكرونه":"pasta","شعيريه":"vermicelli","خل":"vinegar","مخلل":"pickle","تونه":"tuna","سردين":"sardine","لانشون":"luncheon","فول":"fava",
+  "حمص":"chick","عدس":"lentil","فاصوليا":"beans","طحين":"flour","دقيق":"flour","سكر":"sugar","ملح":"salt","بسكويت":"biscuit","شوكولاته":"chocolate",
+  "حلاوه":"halva","حلوى":"candy","فستق":"pistachio","كاجو":"cashew","لوز":"almond","جوز":"walnut","مكسرات":"nuts","بخور":"bakhoor","عود":"oud","عطر":"perfume",
+  "صابون":"soap","طحينه":"tahini","صلصه":"sauce","معجون":"paste","طماطم":"tomato","كاتشب":"ketchup","خبز":"bread","حليب":"milk","جبنه":"cheese","عصير":"juice",
+  "بسمتي":"basmati","كزبره":"coriander","حبه":"seed","سمسم":"sesame","جوز الهند":"coconut","ماء ورد":"rose water","دبس":"molasses","مربى":"jam" };
 
-let lang = localGet("lang") || "ar";
-let cart = JSON.parse(localGet("cart") || "{}");
-let favs = new Set(JSON.parse(localGet("favs") || "[]"));
-let filter = "all", query = "", sort = "def";
+/* ── الحالة ── */
+const ls = { get:(k,d)=>{ try{ const v=localStorage.getItem("hr_"+k); return v==null?d:JSON.parse(v);}catch(e){return d;} }, set:(k,v)=>{ try{localStorage.setItem("hr_"+k,JSON.stringify(v));}catch(e){} } };
+let lang = ls.get("lang","ar");
+let branchId = ls.get("branch", null);
+let carts = ls.get("carts", {});
+let favs = new Set(ls.get("favs", []));
+let userPos = null, nearestId = null;
+let ALL = [], CAT_IDS = [], byKey = new Map(), loaded = false;
+let listState = { key:"", n:PAGE, sort:"def", stock:false };
 
-function localGet(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }
-function localSet(k,v){ try { localStorage.setItem(k,v); } catch(e){} }
-const t = k => lang === "en" ? (T.en[k] ?? k) : (ARD[k] ?? k);
-const money = n => "$" + n.toFixed(2);
-const catName = id => { const c = CATS.find(c => c.id === id); return c ? c[lang] : ""; };
+const t = k => TX[lang][k] ?? k;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const money = n => "$" + Number(n).toFixed(2);
+const branch = () => BR.find(b => b.id === branchId) || BR[2];
+const bName = b => b[lang];
+const cart = () => (carts[branch().id] ||= {});
+const catMeta = id => CATS.find(c => c[0] === id) || CATS[CATS.length-1];
+const catName = id => catMeta(id)[lang === "ar" ? 2 : 3];
+const img = (id, w=360) => /^https?:/.test(id) ? id : `https://static.wixstatic.com/media/${id}/v1/fit/w_${w},h_${w},q_85/p.webp`;
+const norm = s => s.toLowerCase().replace(/[ً-ْ]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
 
-// حفظ النصوص العربية الأصلية
-$$("[data-t]").forEach(el => el.dataset.ar = el.innerHTML);
-$$("[data-tp]").forEach(el => el.dataset.arp = el.placeholder);
-
-function applyLang(){
-  document.documentElement.lang = lang;
-  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-  $$("[data-t]").forEach(el => el.innerHTML = lang === "en" ? (T.en[el.dataset.t] ?? el.dataset.ar) : el.dataset.ar);
-  $$("[data-tp]").forEach(el => el.placeholder = lang === "en" ? T.en[el.dataset.tp] : el.dataset.arp);
-  $("#langBtn").textContent = lang === "ar" ? "English" : "العربية";
-  $("#addrText").textContent = S.address[lang];
-  $("#phoneLink").textContent = S.phone;
-  $("#phoneLink").href = $("#callBtn").href = "tel:" + S.phoneLink;
-  $("#mapBtn").href = S.mapUrl;
-  renderAll();
+/* ── منتجات الفرع الحالي (عروض/إخفاء/إضافات لكل فرع) ── */
+let VIEW = [];
+function buildView(){
+  const b = branch();
+  const hide = (b.hide||[]).map(norm), deals = b.deals||[];
+  VIEW = ALL.filter(p => !hide.some(h => p.s.includes(h))).map(p => {
+    const d = deals.find(d => p.s.includes(norm(d.match)));
+    return d ? {...p, price:d.price, old:p.old||p.price, deal:true} : p;
+  });
+  (b.extra||[]).forEach((x,i) => VIEW.unshift({ k:"x_"+b.id+"_"+i, name:x.name, s:norm(x.name), price:x.price, old:x.old||0, stock:1, img:x.img||"", cat:x.cat||"other", deal:!!x.deal, pop:false }));
+  byKey = new Map(VIEW.map(p => [p.k, p]));
 }
 
+/* ── البطاقات ── */
+const heartSvg = '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>';
+function actionBar(p){
+  const q = cart()[p.k] || 0;
+  if (!p.stock) return `<div class="addbar off">${t("oos")}</div>`;
+  return q ? `<div class="step"><button data-dec="${esc(p.k)}" aria-label="-">−</button><span>${q}</span><button data-inc="${esc(p.k)}" aria-label="+">+</button></div>`
+           : `<button class="addbar" data-inc="${esc(p.k)}">+ ${t("add")}</button>`;
+}
 function card(p){
-  const q = cart[p.id] || 0;
-  return `<div class="card">
-    ${p.tag ? `<span class="tag ${p.tag}">${{best: lang==="ar"?"الأكثر مبيعًا":"Best seller", deal: lang==="ar"?"عرض":"Deal", new: lang==="ar"?"جديد":"New"}[p.tag]}</span>` : ""}
-    <button class="fav" data-fav="${p.id}" aria-label="fav">${favs.has(p.id) ? "❤️" : "🤍"}</button>
-    <div class="card-img" data-open="${p.id}">${p.icon}</div>
-    <h4 data-open="${p.id}">${p[lang]}</h4>
-    <span class="unit">${p.unit[lang]}</span>
-    <div class="price-row">
-      <div class="price"><b>${money(p.price)}</b>${p.old ? `<s>${money(p.old)}</s>` : ""}</div>
-      ${q ? `<div class="qty"><button data-dec="${p.id}">−</button><span>${q}</span><button data-inc="${p.id}">+</button></div>`
-          : `<button class="add" data-inc="${p.id}" aria-label="${t("add")}">+</button>`}
-    </div>
-  </div>`;
+  return `<article class="card ${p.stock?"":"oos"}" data-card="${esc(p.k)}">
+    ${p.deal ? `<span class="badge sale">${t("sale")}</span>` : p.pop ? `<span class="badge">${t("hot")}</span>` : ""}
+    <button class="heart ${favs.has(p.k)?"on":""}" data-fav="${esc(p.k)}" aria-label="favorite">${heartSvg}</button>
+    <div class="pic" data-open="${esc(p.k)}"><img loading="lazy" decoding="async" src="${esc(img(p.img))}" alt="${esc(p.name)}" onerror="this.style.visibility='hidden'"></div>
+    <div class="info" data-open="${esc(p.k)}"><h3>${esc(p.name)}</h3>
+      <div class="price"><b>${money(p.price)}</b>${p.old>p.price?`<s>${money(p.old)}</s>`:""}</div></div>
+    <div data-bar="${esc(p.k)}">${actionBar(p)}</div>
+  </article>`;
+}
+const rail = (title, list, href) => list.length ? `<section class="sec"><div class="sec-h"><h2>${title}</h2>${href?`<a href="${href}">${t("all")} ›</a>`:""}</div><div class="rail">${list.slice(0,14).map(card).join("")}</div></section>` : "";
+
+/* ── الصفحات ── */
+function vHome(){
+  const b = branch();
+  if (!loaded) return `<div class="skel" style="height:160px;margin-bottom:20px"></div><div class="grid">${'<div class="skel"></div>'.repeat(4)}</div>`;
+  const counts = {}; VIEW.forEach(p => counts[p.cat] = (counts[p.cat]||0)+1);
+  const cats = CATS.filter(c => counts[c[0]]);
+  const stock = VIEW.filter(p => p.stock);
+  let h = `<section class="sec"><div class="hero" style="background:linear-gradient(135deg,${b.color},color-mix(in srgb,${b.color} 60%,#000))">
+      <span class="tag">${t("heroTag")}</span><h2>${esc(b.banner[lang])}</h2><p>${t("heroP")}</p>
+      <div class="hero-btns"><a class="hb" href="#/cats">${t("start")}</a><a class="hb ghost" href="tel:${b.phone.replace(/\D/g,"")}">📞 ${t("call")}</a></div>
+      <span class="em">🛒</span></div></section>
+    <section class="sec"><div class="sec-h"><h2>${t("cats")}</h2><a href="#/cats">${t("all")} ›</a></div>
+      <div class="bubbles">${cats.map(c => `<a class="bubble" href="#/c/${c[0]}"><i>${c[1]}</i><b>${c[lang==="ar"?2:3]}</b></a>`).join("")}</div></section>`;
+  h += rail("🔥 " + t("deals"), stock.filter(p => p.deal), "#/c/deals");
+  h += rail("⭐ " + t("popular"), stock.filter(p => p.pop), "#/c/popular");
+  ["dates","rice","tea","spices","coffee","nuts","oils","perfume"].forEach(id => {
+    const m = catMeta(id); h += rail(`${m[1]} ${catName(id)}`, stock.filter(p => p.cat === id), "#/c/"+id);
+  });
+  return h + `<p class="count" style="text-align:center">${t("priceNote")}</p>`;
+}
+function vCats(){
+  const counts = {}; VIEW.forEach(p => counts[p.cat] = (counts[p.cat]||0)+1);
+  return `<div class="page-h"><h1>${t("allCats")}</h1></div><div class="catgrid">` +
+    CATS.filter(c => counts[c[0]]).map(c => `<a class="catcard" href="#/c/${c[0]}"><i>${c[1]}</i><b>${c[lang==="ar"?2:3]}</b><small>${counts[c[0]]} ${t("products")}</small></a>`).join("") + `</div>`;
+}
+function listFor(key, q){
+  let list;
+  if (key === "deals") list = VIEW.filter(p => p.deal);
+  else if (key === "popular") list = VIEW.filter(p => p.pop);
+  else if (key === "search") {
+    const words = norm(q).split(/\s+/).filter(Boolean).map(w => SYN[w] || w);
+    list = VIEW.filter(p => words.every(w => p.s.includes(w) || norm(catName(p.cat)).includes(w)));
+  } else list = VIEW.filter(p => p.cat === key);
+  if (listState.stock) list = list.filter(p => p.stock);
+  if (listState.sort === "low") list = [...list].sort((a,b) => a.price-b.price);
+  if (listState.sort === "high") list = [...list].sort((a,b) => b.price-a.price);
+  return list;
+}
+function vList(key, q){
+  const id = key + "|" + (q||"");
+  if (listState.key !== id) listState = { key:id, n:PAGE, sort:"def", stock:false };
+  const list = listFor(key, q);
+  const title = key==="deals" ? "🔥 "+t("deals") : key==="popular" ? "⭐ "+t("popular") : key==="search" ? `“${esc(q)}”` : `${catMeta(key)[1]} ${catName(key)}`;
+  const counts = {}; VIEW.forEach(p => counts[p.cat] = 1);
+  const tabs = key==="search" ? "" : `<nav class="tabs">${CATS.filter(c => counts[c[0]]).map(c => `<a href="#/c/${c[0]}" class="${c[0]===key?"on":""}">${c[lang==="ar"?2:3]}</a>`).join("")}</nav>`;
+  const pill = (v, label, on) => `<button class="pill ${on?"on":""}" data-sort="${v}">${label}</button>`;
+  return `<div class="page-h"><a class="back" href="#/" aria-label="back">←</a><h1>${title}</h1><span class="count">${list.length} ${t("products")}</span></div>${tabs}
+    <div class="pills">${pill("def",t("sortDef"),listState.sort==="def")}${pill("low",t("sortLow"),listState.sort==="low")}${pill("high",t("sortHigh"),listState.sort==="high")}
+      <button class="pill ${listState.stock?"on":""}" data-stock="1">${t("onlyStock")}</button></div>
+    ${list.length ? `<div class="grid">${list.slice(0,listState.n).map(card).join("")}</div>${list.length>listState.n?`<button class="more" data-more="1">${t("more")}</button>`:""}`
+                  : `<div class="empty"><i>🔎</i>${t("noRes")}</div>`}`;
+}
+function vFav(){
+  const list = VIEW.filter(p => favs.has(p.k));
+  return `<div class="page-h"><h1>❤️ ${t("fav")}</h1></div>` + (list.length ? `<div class="grid">${list.map(card).join("")}</div>` : `<div class="empty"><i>🤍</i>${t("emptyFav")}<br><a href="#/cats">${t("start")}</a></div>`);
+}
+function cartLines(){ return Object.entries(cart()).map(([k,q]) => ({p:byKey.get(k), q})).filter(x => x.p); }
+function vCart(){
+  const b = branch(), lines = cartLines();
+  if (!lines.length) return `<div class="page-h"><h1>🛒 ${t("cart")}</h1></div><div class="empty"><i>🛒</i>${t("emptyCart")}<br><a href="#/cats">${t("start")}</a></div>`;
+  const n = lines.reduce((s,x) => s+x.q, 0), sub = lines.reduce((s,x) => s+x.q*x.p.price, 0);
+  return `<div class="page-h"><h1>🛒 ${t("cart")}</h1><button class="trash" data-clear="1" aria-label="${t("clear")}">🗑</button></div>
+    <div class="note">📍 ${t("pickup")}: <b>${esc(bName(b))}</b></div>
+    ${lines.map(({p,q}) => `<div class="line"><img src="${esc(img(p.img,160))}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="li"><h4>${esc(p.name)}</h4><div class="lp">${money(p.price*q)}</div>
+      <div class="qty"><button class="minus" data-dec="${esc(p.k)}">−</button><span>${q}</span><button data-inc="${esc(p.k)}">+</button></div></div>
+      <button class="trash" data-del="${esc(p.k)}" aria-label="remove">🗑</button></div>`).join("")}
+    <div class="bill"><h3>${t("bill")}</h3>
+      <div class="row"><span>${t("items")}</span><b>${n}</b></div>
+      <div class="row tot"><span>${t("subtotal")}</span><b>${money(sub)}</b></div><small>${t("taxNote")}</small></div>
+    <button class="big wa" data-wa="1">💬 ${t("sendWa")}</button>
+    <a class="big alt" href="tel:${b.phone.replace(/\D/g,"")}">📞 ${t("callStore")} · <span dir="ltr">${b.phone}</span></a>`;
+}
+const dist = (a, b) => { const R=3958.8, r=Math.PI/180, dl=(b.lat-a.lat)*r, dn=(b.lng-a.lng)*r, x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2; return 2*R*Math.asin(Math.sqrt(x)); };
+function storeCards(){
+  const list = userPos ? [...BR].sort((a,b) => dist(userPos,a)-dist(userPos,b)) : BR;
+  return `<button class="locate" data-locate="1">${t("locate")}</button>` + list.map(b => `<div class="store ${b.id===branch().id?"on":""}">
+    ${b.id===nearestId?`<span class="near">${t("nearest")}</span>`:""}
+    <div class="store-h"><span class="store-n" style="background:${b.color}">${b.n}</span><div><h3>${esc(bName(b))}</h3><p>${esc(b.addr)}</p>
+      ${userPos?`<span class="dist">${dist(userPos,b).toFixed(1)} ${t("mi")}</span>`:""}</div></div>
+    <div class="store-a"><button class="pick" data-pick="${b.id}">${b.id===branch().id?t("picked"):t("pick")}</button>
+      <a href="tel:${b.phone.replace(/\D/g,"")}" dir="ltr">📞 ${b.phone}</a>
+      <a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.addr)}">🗺 ${t("dir")}</a></div></div>`).join("");
+}
+const vStores = () => `<div class="page-h"><h1>📍 ${t("stores")}</h1></div>` + storeCards();
+
+/* ── التوجيه ── */
+function route(){
+  const h = decodeURIComponent(location.hash.slice(2) || "");
+  const [a, b] = h.split("/"); let html, tab = "home";
+  if (a === "cats") { html = vCats(); tab = "cats"; }
+  else if (a === "c" && b) { html = vList(b); tab = "cats"; }
+  else if (a === "s" && b) { html = vList("search", b); tab = "home"; }
+  else if (a === "cart") { html = vCart(); tab = "cart"; }
+  else if (a === "fav") { html = vFav(); tab = "fav"; }
+  else if (a === "stores") { html = vStores(); tab = "stores"; }
+  else html = vHome();
+  $("#view").innerHTML = html;
+  document.querySelectorAll(".tabbar a").forEach(x => x.classList.toggle("on", x.dataset.tab === tab));
+}
+function chrome(){
+  const b = branch();
+  document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.documentElement.style.setProperty("--accent", b.color);
+  $("#brandName").textContent = BRAND[lang]; $("#brandSub").textContent = lang === "ar" ? BRAND.subAr : BRAND.subEn;
+  $("#langBtn").textContent = lang === "ar" ? "English" : "العربية";
+  $("#bpLabel").textContent = t("shopFrom"); $("#bpName").textContent = bName(b);
+  $("#q").placeholder = t("search");
+  document.querySelectorAll("[data-t]").forEach(el => el.textContent = t(el.dataset.t));
+  badge();
+}
+function badge(){
+  const n = Object.values(cart()).reduce((s,q) => s+q, 0), el = $("#cartBadge");
+  el.hidden = !n; el.textContent = n;
+}
+function refresh(){ buildView(); chrome(); route(); }
+
+/* ── أفعال ── */
+function toast(m){ const el = $("#toast"); el.textContent = m; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1700); }
+function setQty(k, d, abs){
+  const c = cart(); c[k] = abs != null ? abs : (c[k]||0) + d; if (c[k] <= 0) delete c[k];
+  ls.set("carts", carts); badge();
+  if (d > 0) { const f = $(".fab"); f.classList.remove("bump"); void f.offsetWidth; f.classList.add("bump"); }
+  if (location.hash.startsWith("#/cart")) return route();
+  const p = byKey.get(k);
+  document.querySelectorAll("[data-bar]").forEach(el => { if (el.dataset.bar === k) el.innerHTML = actionBar(p); });
+  if ($("#sheet").classList.contains("on") && $("#sheet").dataset.k === k) openProduct(k);
+}
+function openSheet(html, k=""){ $("#sheetBody").innerHTML = html; $("#sheet").dataset.k = k; $("#sheet").classList.add("on"); $("#scrim").classList.add("on"); }
+function closeSheet(){ $("#sheet").classList.remove("on"); $("#scrim").classList.remove("on"); }
+function openProduct(k){
+  const p = byKey.get(k); if (!p) return; const q = cart()[k] || 0;
+  openSheet(`<div class="pd-img"><img src="${esc(img(p.img,700))}" alt="${esc(p.name)}"></div>
+    <span class="pd-cat">${catMeta(p.cat)[1]} ${catName(p.cat)}</span> <span class="stock ${p.stock?"":"no"}">${p.stock?t("inStock"):t("oos")}</span>
+    <h2 class="pd-name">${esc(p.name)}</h2>
+    <div class="pd-price">${money(p.price)}${p.old>p.price?`<s>${money(p.old)}</s>`:""}</div>
+    ${p.stock ? `<div class="pd-row">${q?`<div class="pd-qty"><button data-dec="${esc(k)}">−</button><span>${q}</span><button data-inc="${esc(k)}">+</button></div><a class="big" href="#/cart" data-close="1">🛒 ${t("cart")}</a>`
+      :`<button class="big" data-inc="${esc(k)}">+ ${t("add")}</button>`}</div>` : ""}`, k);
+}
+function pickBranch(id, quiet){
+  branchId = id; ls.set("branch", id); closeSheet(); refresh();
+  if (!quiet) toast(`${t("switched")} ${bName(branch())}`);
+}
+function locate(auto){
+  if (!navigator.geolocation) return auto || toast(t("locFail"));
+  if (!auto) toast(t("locating"));
+  navigator.geolocation.getCurrentPosition(pos => {
+    userPos = { lat:pos.coords.latitude, lng:pos.coords.longitude };
+    nearestId = [...BR].sort((a,b) => dist(userPos,a)-dist(userPos,b))[0].id;
+    if (auto && !ls.get("branch", null)) pickBranch(nearestId, true);
+    else if (!auto) pickBranch(nearestId);
+    else route();
+    if ($("#sheet").classList.contains("on") && !$("#sheet").dataset.k) openSheet(`<h2>${t("chooseStore")}</h2>` + storeCards());
+  }, () => { if (!auto) toast(t("locFail")); }, { timeout:8000, maximumAge:600000 });
+}
+function sendOrder(){
+  const b = branch(), lines = cartLines(), sub = lines.reduce((s,x) => s+x.q*x.p.price, 0);
+  const msg = `${t("order")}\n${t("branch")}: ${b.en}\n\n` + lines.map(({p,q}) => `• ${q} × ${p.name} — ${money(p.price*q)}`).join("\n") + `\n\n${t("total")}: ${money(sub)}`;
+  window.open(`https://wa.me/${b.whatsapp||""}?text=${encodeURIComponent(msg)}`, "_blank");
 }
 
-function renderCats(){
-  $("#catsGrid").innerHTML = CATS.map(c => {
-    const n = P.filter(p => p.cat === c.id).length;
-    return `<a href="#shop" class="cat" data-cat="${c.id}"><div class="ci">${c.icon}</div><b>${c[lang]}</b><small>${n} ${t("prods")}</small></a>`;
-  }).join("");
-  $("#chips").innerHTML = [`<button class="chip ${filter==="all"?"on":""}" data-chip="all">${t("all")}</button>`]
-    .concat(CATS.map(c => `<button class="chip ${filter===c.id?"on":""}" data-chip="${c.id}">${c.icon} ${c[lang]}</button>`)).join("");
-}
-
-function renderRails(){
-  $("#dealsRail").innerHTML = P.filter(p => p.tag === "deal" || p.old).map(card).join("");
-  $("#bestRail").innerHTML = P.filter(p => p.tag === "best").map(card).join("");
-}
-
-function renderGrid(){
-  const norm = s => s.toLowerCase().replace(/[ًٌٍَُِّْ]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي");
-  let list = P.filter(p => (filter === "all" || p.cat === filter) &&
-    (!query || norm(p.ar + " " + p.en + " " + catName(p.cat)).includes(norm(query))));
-  if (sort === "low") list.sort((a,b) => a.price - b.price);
-  if (sort === "high") list.sort((a,b) => b.price - a.price);
-  if (sort === "name") list.sort((a,b) => a[lang].localeCompare(b[lang], lang));
-  $("#productsGrid").innerHTML = list.map(card).join("");
-  $("#emptyState").hidden = list.length > 0;
-  $("#shopCount").textContent = `${list.length} ${t("items")}`;
-}
-
-function renderCart(){
-  const ids = Object.keys(cart);
-  const count = ids.reduce((s,id) => s + cart[id], 0);
-  const total = ids.reduce((s,id) => s + cart[id] * P.find(p => p.id == id).price, 0);
-  $("#cartCount").textContent = count;
-  $("#cartTotal").textContent = money(total);
-  $("#cartItems").innerHTML = ids.length ? ids.map(id => {
-    const p = P.find(p => p.id == id);
-    return `<div class="ci-row"><div class="ci-img">${p.icon}</div>
-      <div class="ci-info"><b>${p[lang]}</b><small>${money(p.price * cart[id])}</small></div>
-      <div class="qty"><button data-dec="${id}">−</button><span>${cart[id]}</span><button data-inc="${id}">+</button></div></div>`;
-  }).join("") : `<div class="cart-empty"><span>🛒</span>${t("cartEmpty")}<br><br><a href="#shop" class="btn btn-gold" data-close>${t("startShop")}</a></div>`;
-  const left = FREE_SHIP - total;
-  $("#freeShip").innerHTML = (left > 0 ? t("freeLeft").replace("{x}", money(left)) : t("freeOk")) +
-    `<div class="bar"><i style="width:${Math.min(100, total / FREE_SHIP * 100)}%"></i></div>`;
-  $(".drawer-foot").style.display = ids.length ? "" : "none";
-  localSet("cart", JSON.stringify(cart));
-}
-
-function renderAll(){ renderCats(); renderRails(); renderGrid(); renderCart(); }
-
-function toast(msg){
-  const el = $("#toast"); el.textContent = msg; el.classList.add("on");
-  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1800);
-}
-function setQty(id, d){
-  cart[id] = (cart[id] || 0) + d;
-  if (cart[id] <= 0) delete cart[id];
-  if (d > 0) { toast(t("added")); const b = $("#cartCount"); b.classList.remove("bump"); void b.offsetWidth; b.classList.add("bump"); }
-  renderRails(); renderGrid(); renderCart();
-  if (!$("#modal").hidden) openModal(id);
-}
-function openCart(o){ $("#drawer").classList.toggle("on", o); $("#overlay").classList.toggle("on", o); }
-function openModal(id){
-  const p = P.find(p => p.id == id), q = cart[id] || 0;
-  $("#modalBody").innerHTML = `<div class="m-img">${p.icon}</div>
-    <span class="m-cat">${catName(p.cat)} · ${p.unit[lang]}</span><h3>${p[lang]}</h3>
-    <div class="m-price">${money(p.price)} ${p.old ? `<s style="font-size:1rem;color:#999">${money(p.old)}</s>` : ""}</div>
-    ${q ? `<div class="qty" style="justify-content:center;padding:8px"><button data-dec="${id}">−</button><span>${q}</span><button data-inc="${id}">+</button></div>`
-        : `<button class="btn btn-gold full" data-inc="${id}">${t("add")} 🛒</button>`}`;
-  $("#modal").hidden = false;
-}
-
-// أحداث
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-inc],[data-dec],[data-open],[data-fav],[data-cat],[data-chip],[data-close]");
-  if (!el) return;
-  const d = el.dataset;
-  if (d.inc) setQty(d.inc, 1);
+  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close]");
+  if (!el) return; const d = el.dataset;
+  if (d.inc) { setQty(d.inc, 1); toast(t("added")); }
   else if (d.dec) setQty(d.dec, -1);
-  else if (d.open) openModal(d.open);
-  else if (d.fav) { const id = +d.fav; favs.has(id) ? (favs.delete(id), toast(t("unfav"))) : (favs.add(id), toast(t("fav"))); localSet("favs", JSON.stringify([...favs])); renderRails(); renderGrid(); }
-  else if (d.cat) { filter = d.cat; renderCats(); renderGrid(); $("#shop").scrollIntoView(); }
-  else if (d.chip) { filter = d.chip; renderCats(); renderGrid(); }
-  else if (d.close !== undefined) openCart(false);
+  else if (d.del) setQty(d.del, 0, 0);
+  else if (d.open) openProduct(d.open);
+  else if (d.fav) { favs.has(d.fav) ? favs.delete(d.fav) : favs.add(d.fav); ls.set("favs", [...favs]); el.classList.toggle("on"); if (location.hash.startsWith("#/fav")) route(); }
+  else if (d.pick) pickBranch(d.pick);
+  else if (d.locate) locate(false);
+  else if (d.more) { listState.n += PAGE; const y = scrollY; route(); scrollTo(0, y); }
+  else if (d.sort) { listState.sort = d.sort; listState.n = PAGE; route(); }
+  else if (d.stock) { listState.stock = !listState.stock; listState.n = PAGE; route(); }
+  else if (d.clear) { carts[branch().id] = {}; ls.set("carts", carts); badge(); route(); toast(t("cleared")); }
+  else if (d.wa) sendOrder();
+  else if (d.close) closeSheet();
 });
-$("#cartBtn").onclick = $("#bnCart").onclick = e => { e.preventDefault(); openCart(true); };
-$("#closeCart").onclick = $("#overlay").onclick = () => openCart(false);
-$("#modalX").onclick = () => $("#modal").hidden = true;
-$("#modal").onclick = e => { if (e.target.id === "modal") $("#modal").hidden = true; };
-$("#menuBtn").onclick = () => $("#nav").classList.toggle("on");
-$$("#nav a").forEach(a => a.onclick = () => $("#nav").classList.remove("on"));
-$("#langBtn").onclick = () => { lang = lang === "ar" ? "en" : "ar"; localSet("lang", lang); applyLang(); };
-$("#searchInput").oninput = e => { query = e.target.value.trim(); filter = "all"; renderCats(); renderGrid(); if (query) $("#shop").scrollIntoView({behavior:"smooth"}); };
-$("#sortSel").onchange = e => { sort = e.target.value; renderGrid(); };
-$("#clearCart").onclick = () => { cart = {}; renderAll(); toast(t("cleared")); };
-$("#newsForm").onsubmit = e => { e.preventDefault(); e.target.reset(); toast(t("subOk")); };
-$("#checkoutBtn").onclick = () => {
-  const lines = Object.keys(cart).map(id => { const p = P.find(p => p.id == id); return `• ${p[lang]} × ${cart[id]} = ${money(p.price * cart[id])}`; });
-  const total = Object.keys(cart).reduce((s,id) => s + cart[id] * P.find(p => p.id == id).price, 0);
-  const msg = `${t("orderHi")}\n${lines.join("\n")}\n${t("orderTotal")}: ${money(total)}`;
-  window.open(`https://wa.me/${S.whatsapp}?text=${encodeURIComponent(msg)}`, "_blank");
-};
-document.addEventListener("keydown", e => { if (e.key === "Escape") { $("#modal").hidden = true; openCart(false); } });
+$("#scrim").onclick = closeSheet;
+$("#branchBtn").onclick = () => openSheet(`<h2>${t("chooseStore")}</h2>` + storeCards());
+$("#langBtn").onclick = () => { lang = lang === "ar" ? "en" : "ar"; ls.set("lang", lang); refresh(); };
+let qT; $("#q").oninput = e => { const v = e.target.value.trim(); $("#qClear").hidden = !v; clearTimeout(qT);
+  qT = setTimeout(() => { location.hash = v ? "#/s/" + encodeURIComponent(v) : "#/"; }, 250); };
+$("#qClear").onclick = () => { $("#q").value = ""; $("#qClear").hidden = true; location.hash = "#/"; };
+addEventListener("hashchange", () => { closeSheet(); route(); if (!location.hash.startsWith("#/s/")) scrollTo(0, 0); });
+addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+// تحميل تلقائي عند الاقتراب من نهاية القائمة
+addEventListener("scroll", () => { const m = $("[data-more]"); if (m && m.getBoundingClientRect().top < innerHeight + 300) m.click(); }, { passive:true });
 
-// عدّاد العروض: حتى نهاية يوم السبت القادم
-function tick(){
-  const now = new Date(), end = new Date(now);
-  end.setDate(now.getDate() + ((6 - now.getDay() + 7) % 7)); end.setHours(23,59,59,0);
-  let s = Math.max(0, Math.floor((end - now) / 1000));
-  $("#cdD").textContent = Math.floor(s / 86400); s %= 86400;
-  $("#cdH").textContent = Math.floor(s / 3600); s %= 3600;
-  $("#cdM").textContent = Math.floor(s / 60);
-  $("#cdS").textContent = s % 60;
-}
-tick(); setInterval(tick, 1000);
-
-applyLang();
+/* ── بدء التشغيل ── */
+$("#logo").src = BRAND.logo;
+chrome(); route();
+fetch("catalog.json").then(r => r.json()).then(d => {
+  CAT_IDS = d.c;
+  ALL = d.p.map(r => ({ k:r[0], name:r[0], s:norm(r[0]), price:r[1], old:r[2], stock:r[3], img:r[4], cat:CAT_IDS[r[5]] || "other", deal:!!(r[6]&1) || (r[2]>r[1]), pop:!!(r[6]&2) }));
+  loaded = true; refresh();
+}).catch(() => { $("#view").innerHTML = `<div class="empty"><i>⚠️</i>catalog.json</div>`; });
+if (!branchId) { openSheet(`<h2>${t("chooseStore")}</h2>` + storeCards()); locate(true); }
+else if (navigator.permissions) navigator.permissions.query({name:"geolocation"}).then(s => { if (s.state === "granted") locate(true); }).catch(()=>{});
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
 })();

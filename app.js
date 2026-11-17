@@ -106,7 +106,7 @@ function vHome(){
     <section class="sec"><div class="sec-h"><h2>${t("cats")}</h2><a href="#/cats">${t("all")} ›</a></div>
       <div class="bubbles">${cats.map(c => `<a class="bubble" href="#/c/${c[0]}"><i>${c[1]}</i><b>${c[lang==="ar"?2:3]}</b></a>`).join("")}</div></section>`;
   h += rail("🔥 " + t("deals"), stock.filter(p => p.deal), "#/c/deals");
-  h += rail("⭐ " + t("popular"), stock.filter(p => p.pop), "#/c/popular");
+  h += rail("⭐ " + t("popular"), stock.filter(p => p.pop && !p.deal), "#/c/popular");
   ["dates","rice","tea","spices","coffee","nuts","oils","perfume"].forEach(id => {
     const m = catMeta(id); h += rail(`${m[1]} ${catName(id)}`, stock.filter(p => p.cat === id), "#/c/"+id);
   });

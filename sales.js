@@ -8,10 +8,10 @@
 // ═══════════════════════════════════════════════════════════════
 window.SALES = [
   {
-    id: "2026-11-13",
+    id: "2026-11-17-trial",
     title: { ar: "سيل الحرمين", en: "Al-Haramain Sale" },
-    dates: { ar: "١٣ – ١٥ نوفمبر", en: "Nov 13 – 15" },
-    start: "2026-11-13", end: "2026-11-15",
+    dates: { ar: "١٧ – ١٩ نوفمبر", en: "Nov 17 – 19" },
+    start: "2026-11-17", end: "2026-11-19",
     branches: ["farmington", "12mile"],
     groups: [
       { id: "meat", ar: "🥩 اللحوم والدواجن (حلال)", en: "🥩 Halal meat & poultry", items: [

@@ -56,7 +56,11 @@ let userPos = null, nearestId = null;
 let ALL = [], CAT_IDS = [], byKey = new Map(), loaded = false;
 let listState = { key:"", n:PAGE, sort:"def", stock:false };
 
-const t = k => (TX[lang] || {})[k] ?? TX.en[k] ?? k;
+const EXTRA = {
+  ar: { free:"مجاني", pickup2:"الاستلام من الفرع", deliver:"التوصيل للمنزل", pickupTip:"الاستلام من الفرع مجاني. اتصل بالفرع أو أرسل رسالة واتساب قبل وصولك لتحدد وقتك.", freeOver:"التوصيل مجاني للطلبات فوق $50 داخل المنطقة، وإلا فالرسوم $5.", deliveryFee:"رسوم التوصيل", note:"ملاحظة لهذا المنتج (مقاس، نوع…)", shareCart:"📋 نسخة للمشاركة", shareList:"🔗 شارك قائمة التسوق", rate:"قيّم هذا المنتج:", rated:"شكرًا لتقييمك ✓", listTitle:"قائمة تسوق مشتركة", listAddAll:"أضف كل المنتجات إلى سلتي", welcome:"أهلًا بكم في الحرمين", welcomeP:"منتجات من أكثر من 30 دولة حول العالم", myRateNote:"تقييمك يُحفظ على هذا الجهاز" },
+  en: { free:"Free", pickup2:"Pickup at store", deliver:"Delivery", pickupTip:"Pickup is free. Call the store or message on WhatsApp before you arrive to choose your time.", freeOver:"Delivery is free for orders over $50 within the area, otherwise $5.", deliveryFee:"Delivery fee", note:"Note for this item (size, type…)", shareCart:"📋 Copy for sharing", shareList:"🔗 Share shopping list", rate:"Rate this product:", rated:"Thanks for rating ✓", listTitle:"Shared shopping list", listAddAll:"Add all items to my cart", welcome:"Welcome to Al-Haramain", welcomeP:"Products from 30+ countries around the world", myRateNote:"Your rating is saved on this device" }
+};
+const t = k => (TX[lang] || {})[k] ?? (EXTRA[lang] || {})[k] ?? TX.en[k] ?? (EXTRA.en || {})[k] ?? k;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money = n => "$" + Number(n).toFixed(2);
 const branch = () => BR.find(b => b.id === branchId) || BR[2];
@@ -105,6 +109,52 @@ function card(p){
 }
 const rail = (title, list, href) => list.length ? `<section class="sec"><div class="sec-h"><h2>${title}</h2>${href?`<a href="${href}">${t("all")} ›</a>`:""}</div><div class="rail">${list.slice(0,14).map(card).join("")}</div></section>` : "";
 
+
+/* ── أدوات الميزات الجديدة ── */
+const enc64 = s => btoa(unescape(encodeURIComponent(s))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+const dec64 = s => { s = s.replace(/-/g,"+").replace(/_/g,"/"); while (s.length % 4) s += "="; return decodeURIComponent(escape(atob(s))); };
+const deliveryFee = (sub, mode) => mode === "delivery" && sub > 0 && sub < 50 ? 5 : 0;
+const rateRow = k => { const my = (ls.get("myrate", {})[k]) || 0;
+  return `<div class="rate"><small>${t("rate")}</small>${[1,2,3,4,5].map(n => `<button data-rate="${esc(k)}|${n}" class="${my >= n ? "on" : ""}" aria-label="${n}">★</button>`).join("")}</div><small class="rate-note">${t("myRateNote")}</small>`; };
+const adBanner = a => a.endsAt
+  ? `<div class="flash"><b>⏱ ${esc(a.title)}</b><span>${esc(a.text || "")}</span><em data-end="${a.endsAt}"></em></div>`
+  : `<div class="ad-banner"><b>📢 ${esc(a.title)}</b><span>${esc(a.text || "")}</span></div>`;
+function tickFlash(){
+  const ar = L2() === "ar";
+  document.querySelectorAll("[data-end]").forEach(el => {
+    const ms = +el.dataset.end - Date.now();
+    if (ms <= 0) { el.textContent = ar ? "انتهى العرض" : "Offer ended"; return; }
+    const sec = Math.floor(ms / 1000), h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), x = sec % 60;
+    el.textContent = (h ? h + ":" : "") + String(m).padStart(2, "0") + ":" + String(x).padStart(2, "0");
+  });
+}
+function orderText(){
+  const b = branch(), lines = cartLines(), sub = lines.reduce((s,x) => s + x.q * x.p.price, 0);
+  const mode = ls.get("mode", "pickup"), fee = deliveryFee(sub, mode), notes = ls.get("notes", {});
+  const head = `${t("order")}\n${t("branch")}: ${b.en}\n${mode === "delivery" ? t("deliver") : t("pickup2")}\n\n`;
+  const body = lines.map(({p,q}) => `• ${q} × ${p.name} — ${money(p.price * q)}` + (notes[p.k] ? `\n   📝 ${notes[p.k]}` : "")).join("\n");
+  return head + body + `\n\n${t("subtotal")}: ${money(sub)}` + (mode === "delivery" ? `\n${t("deliveryFee")}: ${fee ? money(fee) : t("free")}` : "") + `\n${t("total")}: ${money(sub + fee)}`;
+}
+function vSharedList(code){
+  let items = []; try { items = JSON.parse(dec64(code)); } catch (e) {}
+  const rows = items.map(([k,q]) => ({ p: byKey.get(k), q })).filter(x => x.p);
+  if (!rows.length) return `<div class="page-h"><h1>🛒 ${t("listTitle")}</h1></div><div class="empty"><i>🛒</i>${t("emptyCart")}<br><a href="#/cats">${t("start")}</a></div>`;
+  return `<div class="page-h"><h1>🛒 ${t("listTitle")}</h1></div>` + rows.map(({p,q}) => `<div class="line"><img src="${esc(img(p.img,160))}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="li"><h4>${esc(p.name)}</h4><div class="lp">${money(p.price * q)} × ${q}</div></div></div>`).join("") +
+    `<button class="big wa" data-addlist="${esc(code)}">🛒 ${t("listAddAll")}</button>`;
+}
+function showWelcome(){
+  if (!loaded || ls.get("welcomed", false)) return;
+  const pool = VIEW.filter(p => p.img && p.stock), seen = new Set(), picks = [];
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  for (const p of pool) { if (!seen.has(p.cat)) { seen.add(p.cat); picks.push(p); } if (picks.length === 4) break; }
+  if (picks.length < 4) return;
+  ls.set("welcomed", true);
+  openSheet(`<div class="welcome"><h2>${t("welcome")}</h2><p>${t("welcomeP")}</p>
+    <div class="wgrid">${picks.map(p => `<img src="${esc(img(p.img,300))}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.visibility='hidden'">`).join("")}</div>
+    <button class="big" data-close="1">${t("start")}</button></div>`);
+}
+
 /* ── الصفحات ── */
 function vHome(){
   const b = branch();
@@ -113,7 +163,7 @@ function vHome(){
   const cats = CATS.filter(c => counts[c[0]]);
   const stock = VIEW.filter(p => p.stock);
   const act = window.HR_SALE_ACTIVE ? window.HR_SALE_ACTIVE(b.id) : [];
-  let h = act.map(s => `<a class="sale-banner" href="#/sale"><b>🔥 ${esc(s.title[L2()])} · ${esc(s.dates[L2()])}</b><span>${L2()==="ar"?"تسوّق السيل ›":"Shop the sale ›"}</span></a>`).join("");
+  let h = (window.HR_ADS ? window.HR_ADS(b.id) : []).filter(a => !a.endsAt || a.endsAt > Date.now()).map(adBanner).join("") + act.map(s => `<a class="sale-banner" href="#/sale"><b>🔥 ${esc(s.title[L2()])} · ${esc(s.dates[L2()])}</b><span>${L2()==="ar"?"تسوّق السيل ›":"Shop the sale ›"}</span></a>`).join("");
   h += `<section class="sec"><div class="hero" style="background:linear-gradient(135deg,${b.color},color-mix(in srgb,${b.color} 60%,#000))">
       <span class="tag">${t("heroTag")}</span><h2>${esc(b.banner[L2()])}</h2><p>${t("heroP")}</p>
       <div class="hero-btns"><a class="hb" href="#/cats">${t("start")}</a><a class="hb ghost" href="tel:${b.phone.replace(/\D/g,"")}">📞 ${t("call")}</a></div>
@@ -197,16 +247,26 @@ function vCart(){
   const b = branch(), lines = cartLines();
   if (!lines.length) return `<div class="page-h"><h1>🛒 ${t("cart")}</h1></div><div class="empty"><i>🛒</i>${t("emptyCart")}<br><a href="#/cats">${t("start")}</a></div>`;
   const n = lines.reduce((s,x) => s+x.q, 0), sub = lines.reduce((s,x) => s+x.q*x.p.price, 0);
+  const mode = ls.get("mode", "pickup"), fee = deliveryFee(sub, mode), notes = ls.get("notes", {});
   return `<div class="page-h"><h1>🛒 ${t("cart")}</h1><button class="trash" data-clear="1" aria-label="${t("clear")}">🗑</button></div>
     <div class="note">📍 ${t("pickup")}: <b>${esc(bName(b))}</b></div>
+    <div class="mode">
+      <button data-mode="pickup" class="${mode === "pickup" ? "on" : ""}">🏬 ${t("pickup2")} · ${t("free")}</button>
+      <button data-mode="delivery" class="${mode === "delivery" ? "on" : ""}">🚚 ${t("deliver")}</button>
+    </div>
+    <p class="mode-tip"><small>${mode === "pickup" ? t("pickupTip") : t("freeOver")}</small></p>
     ${lines.map(({p,q}) => `<div class="line"><img src="${esc(img(p.img,160))}" alt="" onerror="this.style.visibility='hidden'">
       <div class="li"><h4>${esc(p.name)}</h4><div class="lp">${money(p.price*q)}</div>
-      <div class="qty"><button class="minus" data-dec="${esc(p.k)}">−</button><span>${q}</span><button data-inc="${esc(p.k)}">+</button></div></div>
+      <div class="qty"><button class="minus" data-dec="${esc(p.k)}">−</button><span>${q}</span><button data-inc="${esc(p.k)}">+</button></div>
+      <textarea class="lnote" rows="1" data-note="${esc(p.k)}" placeholder="${t("note")}">${esc(notes[p.k] || "")}</textarea></div>
       <button class="trash" data-del="${esc(p.k)}" aria-label="remove">🗑</button></div>`).join("")}
     <div class="bill"><h3>${t("bill")}</h3>
       <div class="row"><span>${t("items")}</span><b>${n}</b></div>
-      <div class="row tot"><span>${t("subtotal")}</span><b>${money(sub)}</b></div><small>${t("taxNote")}</small></div>
+      <div class="row"><span>${t("subtotal")}</span><b>${money(sub)}</b></div>
+      ${mode === "delivery" ? `<div class="row"><span>${t("deliveryFee")}</span><b>${fee ? money(fee) : t("free")}</b></div>` : ""}
+      <div class="row tot"><span>${t("total")}</span><b>${money(sub + fee)}</b></div><small>${t("taxNote")}</small></div>
     <button class="big wa" data-wa="1">💬 ${t("sendWa")}</button>
+    <div class="cart-tools"><button class="alt-btn" data-copy="1">${t("shareCart")}</button><button class="alt-btn" data-sharelist="1">${t("shareList")}</button></div>
     <div class="soon-grid pay">${["🍎 Apple Pay", "🅿️ PayPal", "🤖 Google Pay"].map(x => `<button class="soon-btn" data-soon="1">${x}<small>${t("soon")}</small></button>`).join("")}</div>
     <a class="big alt" href="tel:${b.phone.replace(/\D/g,"")}">📞 ${t("callStore")} · <span dir="ltr">${b.phone}</span></a>`;
 }
@@ -250,8 +310,8 @@ const vTemplate = k => {
     s.items.map(i => `<details class="faq"><summary>${esc(i.q[L])}</summary><p>${esc(i.a[L])}</p></details>`).join("");
 };
 const SOON_FEATURES = {
-  ar: ["📷 مسح الباركود", "🛒 قائمة التسوق", "⭐ تقييم المنتجات", "📦 تتبع الطلب", "🎁 نقاط الولاء"],
-  en: ["📷 Barcode scanner", "🛒 Shopping list", "⭐ Product reviews", "📦 Order tracking", "🎁 Loyalty points"]
+  ar: ["📷 مسح الباركود", "🛒 قائمة التسوق", "⭐ تقييم المنتجات", "📦 تتبع الطلب", "🎁 نقاط الولاء", "🌙 الوضع الليلي", "🤖 توليد نشرة العروض بالذكاء"],
+  en: ["📷 Barcode scanner", "🛒 Shopping list", "⭐ Product reviews", "📦 Order tracking", "🎁 Loyalty points", "🌙 Dark mode", "🤖 AI flyer generator"]
 };
 const vSoon = () => {
   const L = L2() === "ar" ? "ar" : "en";
@@ -269,6 +329,7 @@ function route(){
   else if (a === "cart") { html = vCart(); tab = "cart"; }
   else if (a === "fav") { html = vFav(); tab = "fav"; }
   else if (a === "stores") { html = vStores(); tab = "stores"; }
+  else if (a === "list" && b) { html = vSharedList(b); tab = "cart"; }
   else if (a === "sale") { html = b === "archive" ? vArchive() : vSale(); tab = "home"; }
   else if (a === "ai") { html = window.HR_AI ? window.HR_AI.view() : "<p>…</p>"; tab = "stores"; }
   else if (a === "help" || a === "recipes") { html = vTemplate(a); tab = "stores"; }
@@ -314,11 +375,11 @@ function openProduct(k){
     <span class="pd-cat">${catMeta(p.cat)[1]} ${catName(p.cat)}</span> <span class="stock ${p.stock?"":"no"}">${p.stock?t("inStock"):t("oos")}</span>
     <h2 class="pd-name">${esc(p.name)}</h2>
     <div class="pd-price">${money(p.price)}${p.old>p.price?`<s>${money(p.old)}</s>`:""}</div>
-    ${p.stock ? `<div class="pd-row">${q?`<div class="pd-qty"><button data-dec="${esc(k)}">−</button><span>${q}</span><button data-inc="${esc(k)}">+</button></div><a class="big" href="#/cart" data-close="1">🛒 ${t("cart")}</a>`
+    ${rateRow(k)}${p.stock ? `<div class="pd-row">${q?`<div class="pd-qty"><button data-dec="${esc(k)}">−</button><span>${q}</span><button data-inc="${esc(k)}">+</button></div><a class="big" href="#/cart" data-close="1">🛒 ${t("cart")}</a>`
       :`<button class="big" data-inc="${esc(k)}">+ ${t("add")}</button>`}</div>` : ""}`, k);
 }
 function pickBranch(id, quiet){
-  branchId = id; ls.set("branch", id); closeSheet(); refresh();
+  branchId = id; ls.set("branch", id); closeSheet(); refresh(); setTimeout(showWelcome, 350);
   if (!quiet) toast(`${t("switched")} ${bName(branch())}`);
 }
 function locate(auto){
@@ -334,14 +395,26 @@ function locate(auto){
   }, () => { if (!auto) toast(t("locFail")); }, { timeout:8000, maximumAge:600000 });
 }
 function sendOrder(){
-  const b = branch(), lines = cartLines(), sub = lines.reduce((s,x) => s+x.q*x.p.price, 0);
-  const msg = `${t("order")}\n${t("branch")}: ${b.en}\n\n` + lines.map(({p,q}) => `• ${q} × ${p.name} — ${money(p.price*q)}`).join("\n") + `\n\n${t("total")}: ${money(sub)}`;
-  window.open(`https://wa.me/${b.whatsapp||""}?text=${encodeURIComponent(msg)}`, "_blank");
+  window.open(`https://wa.me/${branch().whatsapp||""}?text=${encodeURIComponent(orderText())}`, "_blank");
 }
 
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close],[data-addgroup],[data-share]");
+  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close],[data-addgroup],[data-share],[data-rate],[data-mode],[data-copy],[data-sharelist],[data-addlist]");
   if (!el) return; const d = el.dataset;
+  if (d.rate) { const i = d.rate.lastIndexOf("|"), k = d.rate.slice(0, i), r = ls.get("myrate", {}); r[k] = +d.rate.slice(i + 1); ls.set("myrate", r); toast(t("rated")); openProduct(k); return; }
+  if (d.mode) { ls.set("mode", d.mode); route(); return; }
+  if (d.copy) { const txt = orderText(); if (navigator.share) navigator.share({ text: txt }).catch(() => {}); else if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("✓")).catch(() => {}); return; }
+  if (d.sharelist) {
+    const url = location.origin + location.pathname + "#/list/" + enc64(JSON.stringify(cartLines().map(({p,q}) => [p.k, q])));
+    if (navigator.share) navigator.share({ title: document.title, url }).catch(() => {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast("✓ " + t("shareList"))).catch(() => toast(url));
+    return;
+  }
+  if (d.addlist) {
+    const c = cart(); let items = []; try { items = JSON.parse(dec64(d.addlist)); } catch (e) {}
+    items.forEach(([k,q]) => { const p = byKey.get(k); if (p && p.stock) c[k] = (c[k] || 0) + q; });
+    ls.set("carts", carts); badge(); toast(t("added")); location.hash = "#/cart"; return;
+  }
   if (d.addgroup) {
     const [sid, gid] = d.addgroup.split("|"), c = cart();
     VIEW.filter(p => p.sale && p.sale.sid === sid && p.sale.gid === gid && p.stock).forEach(p => { c[p.k] = (c[p.k] || 0) + 1; });
@@ -378,12 +451,19 @@ function loadTranslate(){
   if (window.google && google.translate && google.translate.TranslateElement) return window.googleTranslateElementInit();
   if (!document.getElementById("gtScript")) { const s = document.createElement("script"); s.id = "gtScript"; s.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"; document.body.appendChild(s); }
 }
+document.addEventListener("change", e => {
+  const n = e.target.closest && e.target.closest("[data-note]"); if (!n) return;
+  const notes = ls.get("notes", {}), v = n.value.trim();
+  if (v) notes[n.dataset.note] = v; else delete notes[n.dataset.note];
+  ls.set("notes", notes);
+});
 document.addEventListener("click", e => { if (e.target.closest("[data-tr]")) loadTranslate(); if (e.target.closest("[data-soon]")) toast(t("soon")); });
 let qT; $("#q").oninput = e => { const v = e.target.value.trim(); $("#qClear").hidden = !v; clearTimeout(qT);
   qT = setTimeout(() => { location.hash = v ? "#/s/" + encodeURIComponent(v) : "#/"; }, 250); };
 $("#qClear").onclick = () => { $("#q").value = ""; $("#qClear").hidden = true; location.hash = "#/"; };
 addEventListener("hashchange", () => { closeSheet(); route(); if (!location.hash.startsWith("#/s/")) scrollTo(0, 0); });
 addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+setInterval(tickFlash, 1000);
 // تحميل تلقائي عند الاقتراب من نهاية القائمة
 addEventListener("scroll", () => { const m = $("[data-more]"); if (m && m.getBoundingClientRect().top < innerHeight + 300) m.click(); }, { passive:true });
 
@@ -407,7 +487,7 @@ fetch("catalog.json").then(r => r.json()).then(d => {
   CAT_IDS = d.c;
   const seen = {};
   ALL = d.p.map(r => ({ k:(seen[r[0]] = (seen[r[0]]||0)+1) > 1 ? r[0]+" #"+seen[r[0]] : r[0], name:r[0], s:norm(r[0]), price:r[1], old:r[2], stock:r[3], img:r[4], cat:CAT_IDS[r[5]] || "other", deal:!!(r[6]&1) || (r[2]>r[1]), pop:!!(r[6]&2) }));
-  loaded = true; refresh();
+  loaded = true; refresh(); if (branchId) showWelcome();
 }).catch(() => { $("#view").innerHTML = `<div class="empty"><i>⚠️</i>catalog.json</div>`; });
 if (!branchId) { openSheet(`<h2>${t("chooseStore")}</h2>` + storeCards()); locate(true); }
 else if (navigator.permissions) navigator.permissions.query({name:"geolocation"}).then(s => { if (s.state === "granted") locate(true); }).catch(()=>{});

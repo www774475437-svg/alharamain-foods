@@ -173,6 +173,14 @@ function toolsView(){
     </form>
     ${ads.length ? `<h3>الإعلانات الحالية</h3>` + ads.map(a => `<div class="ad-row"><b>${esc(a.title)}</b> <small>${esc(a.text || "")}</small>
       <button data-ad="delad" data-id="${esc(a.id)}">حذف</button></div>`).join("") : ""}
+    <h2>⏱ عرض الساعة</h2>
+    <p><small>${staff.role === "owner" ? "يُنشر العرض على كل الفروع الأربعة." : "يُنشر العرض على فرعك فقط."} يظهر للزبائن مع عدّ تنازلي حتى انتهاء المدة.</small></p>
+    <form class="ad-form" data-form="flash">
+      <input name="title" placeholder="اسم العرض، مثال: عرض الساعة على التمر" required>
+      <input name="text" placeholder="التفاصيل، مثال: خصم على كل علب التمر">
+      <label>المدة: <select name="mins"><option value="30">30 دقيقة</option><option value="60" selected>ساعة</option><option value="120">ساعتان</option></select></label>
+      <button class="big" type="submit">نشر العرض</button>
+    </form>
     <h2>توفر المنتجات</h2>
     <input class="ad-search" id="avSearch" placeholder="ابحث عن منتج..." oninput="window.HR_AV_FILTER(this.value)">
     <div id="avList">${productRows(products, out, "")}</div>
@@ -206,6 +214,14 @@ function ownerView(){
       <button class="big" type="submit">إضافة</button>
     </form>
     <h2>المدراء</h2>${rows || "<p>لا يوجد مدراء بعد.</p>"}
+    <h2>📊 إحصائيات</h2>
+    <div class="stats">
+      <div><b>${staffList.length}</b><small>حسابات الفريق</small></div>
+      <div><b>${(window.HR_ALL ? window.HR_ALL() : []).length}</b><small>منتج في الكتالوج</small></div>
+      <div><b>${(window.SALES || []).length}</b><small>سيل مسجّل</small></div>
+      <div><b>${BRANCH_IDS.reduce((n, b) => n + (window.HR_ADS(b) || []).length, 0)}</b><small>إعلان أو عرض منشور</small></div>
+    </div>
+    <p><small>عدد الزبائن والطلبات يحتاج تسجيلًا على الخادم، ولم يُفعّل بعد.</small></p>
     <h2>إدارة الفروع</h2>${toolsView()}
     <button class="big alt" data-ad="signout">تسجيل الخروج</button>`;
 }
@@ -227,6 +243,14 @@ document.addEventListener("submit", async e => {
     else if (kind === "staff") {
       const email = fd.get("email").trim().toLowerCase();
       await setDoc(doc(db, "staff", email), { role: "manager", branch: fd.get("branch") });
+      f.reset();
+    }
+    else if (kind === "flash") {
+      const endsAt = Date.now() + (+fd.get("mins")) * 60000;
+      const targets = staff.role === "owner" ? BRANCH_IDS : [curBranch()];
+      await Promise.all(targets.map(bid => addDoc(collection(db, "branches", bid, "ads"), {
+        kind: "flash", title: fd.get("title").trim(), text: (fd.get("text") || "").trim(), endsAt, by: user.email, at: serverTimestamp()
+      })));
       f.reset();
     }
     else if (kind === "ad") {

@@ -264,3 +264,29 @@ img{display:block;max-width:100%}
 .sale-h p{margin:0 0 8px;color:var(--muted,#666)}
 .sale-group{margin-top:18px}
 .sale-group .sec-h{flex-wrap:wrap;gap:8px}
+
+/* ── تحديث الدفعة 2 و3 ── */
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 6px}
+.mode button{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:11px 8px;font-weight:700;font-size:.9rem;cursor:pointer}
+.mode button.on{border-color:var(--red);background:#fdeeee;color:var(--red)}
+.mode-tip{margin:4px 2px 14px;color:#555}
+.lnote{display:block;width:100%;margin-top:8px;border:1px dashed var(--line);border-radius:10px;padding:6px 8px;font:inherit;font-size:.82rem;resize:vertical;background:#fafafa}
+.cart-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.alt-btn{border:1.5px solid var(--line);background:#fff;border-radius:14px;padding:11px 8px;font-weight:700;font-size:.88rem;cursor:pointer}
+.rate{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin:8px 0 2px}
+.rate button{border:0;background:none;font-size:1.5rem;color:#c9c9c9;cursor:pointer;padding:0 2px}
+.rate button.on{color:#f0a500}
+.rate-note{display:block;color:#888;margin-bottom:8px}
+.flash{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:#fff7e0;border:1.5px solid #f0a500;color:#6b4e00}
+.flash span{flex:1;min-width:0;font-size:.88rem}
+.flash em{font-style:normal;font-family:var(--fe);font-weight:800;background:#6b4e00;color:#fff;border-radius:10px;padding:4px 10px;direction:ltr}
+.ad-banner{margin:0 0 14px;padding:12px 14px;border-radius:14px;background:#eef6f1;color:#214d35}
+.ad-banner span{display:block;font-size:.88rem;margin-top:2px}
+.welcome{text-align:center}
+.welcome p{color:#555}
+.wgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0 18px}
+.wgrid img{width:100%;aspect-ratio:1;object-fit:contain;background:#fff;border-radius:12px;border:1px solid var(--line)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 0}
+.stats div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stats b{display:block;font-family:var(--fe);font-size:1.4rem;color:var(--red)}
+.stats small{color:#666}

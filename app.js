@@ -30,7 +30,7 @@ const TX = {
     priceNote:"Prices come from Al-Haramain's online store and may vary slightly between stores." }
 };
 // كلمات بحث عربية ← إنجليزية (أسماء المنتجات بالإنجليزية)
-const SYN = { "ارز":"rice","رز":"rice","شاي":"tea","قهوه":"coffee","بن":"coffee","تمر":"dates","تمور":"dates","عسل":"honey","زيت":"oil","زيتون":"olive","سمن":"ghee",
+const SYN = { "ارز":"rice","رز":"rice","شاي":"tea","قهوه":"coffee","بن":"coffee","تمر":"date","تمور":"date","عسل":"honey","زيت":"oil","زيتون":"olive","سمن":"ghee",
   "بهارات":"masala","كمون":"cumin","كركم":"turmeric","فلفل":"pepper","هيل":"cardamom","قرفه":"cinnamon","زعفران":"saffron","زنجبيل":"ginger","ثوم":"garlic",
   "معكرونه":"pasta","مكرونه":"pasta","شعيريه":"vermicelli","خل":"vinegar","مخلل":"pickle","تونه":"tuna","سردين":"sardine","لانشون":"luncheon","فول":"fava",
   "حمص":"chick","عدس":"lentil","فاصوليا":"beans","طحين":"flour","دقيق":"flour","سكر":"sugar","ملح":"salt","بسكويت":"biscuit","شوكولاته":"chocolate",
@@ -286,7 +286,8 @@ $("#logo").src = BRAND.logo;
 chrome(); route();
 fetch("catalog.json").then(r => r.json()).then(d => {
   CAT_IDS = d.c;
-  ALL = d.p.map(r => ({ k:r[0], name:r[0], s:norm(r[0]), price:r[1], old:r[2], stock:r[3], img:r[4], cat:CAT_IDS[r[5]] || "other", deal:!!(r[6]&1) || (r[2]>r[1]), pop:!!(r[6]&2) }));
+  const seen = {};
+  ALL = d.p.map(r => ({ k:(seen[r[0]] = (seen[r[0]]||0)+1) > 1 ? r[0]+" #"+seen[r[0]] : r[0], name:r[0], s:norm(r[0]), price:r[1], old:r[2], stock:r[3], img:r[4], cat:CAT_IDS[r[5]] || "other", deal:!!(r[6]&1) || (r[2]>r[1]), pop:!!(r[6]&2) }));
   loaded = true; refresh();
 }).catch(() => { $("#view").innerHTML = `<div class="empty"><i>⚠️</i>catalog.json</div>`; });
 if (!branchId) { openSheet(`<h2>${t("chooseStore")}</h2>` + storeCards()); locate(true); }

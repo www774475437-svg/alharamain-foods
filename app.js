@@ -101,7 +101,7 @@ function card(p){
   return `<article class="card ${p.stock?"":"oos"}" data-card="${esc(p.k)}">
     ${p.deal ? `<span class="badge sale">${t("sale")}</span>` : p.pop ? `<span class="badge">${t("hot")}</span>` : ""}
     <button class="heart ${favs.has(p.k)?"on":""}" data-fav="${esc(p.k)}" aria-label="favorite">${heartSvg}</button>
-    <div class="pic" data-open="${esc(p.k)}"><img loading="lazy" decoding="async" src="${esc(img(p.img))}" alt="${esc(p.name)}" onerror="this.style.visibility='hidden'"></div>
+    <div class="pic${p.img ? "" : " noimg"}" data-name="${esc(p.name)}" data-open="${esc(p.k)}">${p.img ? `<img loading="lazy" decoding="async" src="${esc(img(p.img))}" alt="${esc(p.name)}" onerror="this.closest('.pic').classList.add('noimg')">` : ""}</div>
     <div class="info" data-open="${esc(p.k)}"><h3>${esc(p.name)}</h3>
       <div class="price"><b>${money(p.price)}</b>${p.old>p.price?`<s>${money(p.old)}</s>`:""}</div></div>
     <div data-bar="${esc(p.k)}">${actionBar(p)}</div>
@@ -143,17 +143,55 @@ function vSharedList(code){
       <div class="li"><h4>${esc(p.name)}</h4><div class="lp">${money(p.price * q)} × ${q}</div></div></div>`).join("") +
     `<button class="big wa" data-addlist="${esc(code)}">🛒 ${t("listAddAll")}</button>`;
 }
+const WELCOME = {
+  ar: [
+    { h:"أهلًا بكم في الحرمين", p:"تطبيق متجر الحرمين للأغذية العالمية، فيه أكثر من 2500 منتج من أكثر من 30 دولة." },
+    { h:"كيف تتسوّق؟", p:"تصفّح الأقسام أو ابحث باسم المنتج، ثم أضف ما تحتاجه إلى السلة." },
+    { h:"اختر فرعك", p:"اختر فرعك من الزر أعلى الصفحة، أو اضغط «حدّد أقرب فرع» ليختاره التطبيق لك. لدينا 4 فروع." },
+    { h:"الاستلام والتوصيل", p:"الاستلام من الفرع مجاني، وتتصل بالفرع أو ترسل واتساب قبل وصولك لتحدد وقتك. التوصيل مجاني للطلبات فوق $50 داخل المنطقة، وإلا فالرسوم $5." },
+    { h:"منتجات من العالم", p:"من التوابل والأرز والتمر إلى الحلويات والزيوت، منتجات من مختلف البلدان في مكان واحد." }
+  ],
+  en: [
+    { h:"Welcome to Al-Haramain", p:"Our store app has over 2,500 products from more than 30 countries." },
+    { h:"How to shop", p:"Browse categories or search by product name, then add what you need to your cart." },
+    { h:"Choose your store", p:"Pick your store from the button at the top, or tap “Find my nearest store” and the app will choose for you. We have 4 stores." },
+    { h:"Pickup and delivery", p:"Pickup at the store is free. Call or message the store on WhatsApp before you arrive to choose your time. Delivery is free for orders over $50 within the area, otherwise $5." },
+    { h:"Products from around the world", p:"Spices, rice, dates, sweets and oils from many countries, all in one place." }
+  ]
+};
 function showWelcome(){
-  if (!loaded || ls.get("welcomed", false)) return;
+  if (!loaded || ls.get("welcomed", false) || document.getElementById("welcome")) return;
+  ls.set("welcomed", true);
+  const ar = L2() === "ar", pages = WELCOME[ar ? "ar" : "en"];
   const pool = VIEW.filter(p => p.img && p.stock), seen = new Set(), picks = [];
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   for (const p of pool) { if (!seen.has(p.cat)) { seen.add(p.cat); picks.push(p); } if (picks.length === 4) break; }
-  if (picks.length < 4) return;
-  ls.set("welcomed", true);
-  openSheet(`<div class="welcome"><h2>${t("welcome")}</h2><p>${t("welcomeP")}</p>
-    <div class="wgrid">${picks.map(p => `<img src="${esc(img(p.img,300))}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.visibility='hidden'">`).join("")}</div>
-    <button class="big" data-close="1">${t("start")}</button></div>`);
+  const slides = pages.map((g, i) => `<section class="wp">
+      ${i === 4 ? `<div class="wstrip">${picks.map(p => `<img src="${esc(img(p.img,300))}" alt="${esc(p.name)}" loading="lazy" onerror="this.style.visibility='hidden'">`).join("")}</div>` : `<div class="wicon">${["🛒","🔎","📍","🚚","🌍"][i]}</div>`}
+      <h2>${esc(g.h)}</h2><p>${esc(g.p)}</p></section>`).join("");
+  const el = document.createElement("div");
+  el.id = "welcome"; el.className = "welcome-full"; el.setAttribute("role", "dialog");
+  el.innerHTML = `<button class="wskip" data-wskip="1">${ar ? "تخطَّى" : "Skip"}</button>
+    <div class="wtrack" style="transform:translateX(0)">${slides}</div>
+    <div class="wdots">${pages.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div>
+    <div class="wnav"><button data-wprev="1">${ar ? "السابق" : "Back"}</button>
+      <button class="wnext" data-wnext="1">${ar ? "التالي" : "Next"}</button></div>`;
+  document.body.appendChild(el);
+  el.dataset.i = "0"; el.dataset.n = String(pages.length);
+  let x0 = null;
+  el.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener("touchend", e => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40) welcomeGo(dx < 0 ? 1 : -1); }, { passive: true });
 }
+function welcomeGo(step){
+  const el = document.getElementById("welcome"); if (!el) return;
+  const n = +el.dataset.n, i = Math.max(0, Math.min(n - 1, +el.dataset.i + step));
+  if (step > 0 && +el.dataset.i === n - 1) return closeWelcome();
+  el.dataset.i = String(i);
+  el.querySelector(".wtrack").style.transform = `translateX(${i * 100}%)`;
+  el.querySelectorAll(".wdots i").forEach((d, k) => d.classList.toggle("on", k === i));
+  el.querySelector(".wnext").textContent = i === n - 1 ? (document.documentElement.lang === "ar" ? "ابدأ التسوق" : "Start shopping") : (document.documentElement.lang === "ar" ? "التالي" : "Next");
+}
+function closeWelcome(){ const el = document.getElementById("welcome"); if (el) el.remove(); }
 
 /* ── الصفحات ── */
 function vHome(){
@@ -224,7 +262,12 @@ function vSale(){
       return `<div class="sale-group"><div class="sec-h"><h2>${g[L]}</h2><button class="pill on" data-addgroup="${esc(s.id + "|" + g.id)}">＋ ${L==="ar"?"أضف الكل للسلة":"Add all to cart"}</button></div>
         <div class="grid">${items.map(card).join("")}</div></div>`;
     }).join("");
-    return `<section class="sale-h"><h1>${esc(s.title[L])}</h1><p>${esc(s.dates[L])}</p>
+    const top = VIEW.filter(p => p.sale && p.sale.sid === s.id).slice(0, 12);
+    const car = top.length ? `<div class="sale-car" data-car="0"><div class="scard-track">${top.map(p => `<div class="scard${p.img ? "" : " noimg"}" data-name="${esc(p.name)}"><button class="scard-pic" data-open="${esc(p.k)}" aria-label="${esc(p.name)}">${p.img ? `<img src="${esc(img(p.img,500))}" alt="${esc(p.name)}" onerror="this.closest('.scard').classList.add('noimg')">` : ""}</button>
+        <div class="scard-info"><b>${esc(p.name)}</b><span>${money(p.price)}${p.old > p.price ? ` <s>${money(p.old)}</s>` : ""}</span>
+        ${p.stock ? `<button class="pill on" data-inc="${esc(p.k)}">＋ ${L==="ar"?"أضف":"Add"}</button>` : `<em>${L==="ar"?"غير متوفر":"Out of stock"}</em>`}</div></div>`).join("")}</div>
+      <div class="sale-dots">${top.map((_, i) => `<i class="${i === 0 ? "on" : ""}"></i>`).join("")}</div></div>` : "";
+    return `<section class="sale-h"><h1>${esc(s.title[L])}</h1><p>${esc(s.dates[L])}</p>${car}
       <div class="pills"><button class="pill" data-share="${esc(s.id)}">🔗 ${L==="ar"?"مشاركة السيل":"Share sale"}</button>${staffLink}</div></section>` + groups;
   }).join("");
 }
@@ -399,8 +442,11 @@ function sendOrder(){
 }
 
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close],[data-addgroup],[data-share],[data-rate],[data-mode],[data-copy],[data-sharelist],[data-addlist]");
+  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close],[data-addgroup],[data-share],[data-rate],[data-mode],[data-copy],[data-sharelist],[data-addlist],[data-wskip],[data-wnext],[data-wprev]");
   if (!el) return; const d = el.dataset;
+  if (d.wskip) return closeWelcome();
+  if (d.wnext) return welcomeGo(1);
+  if (d.wprev) return welcomeGo(-1);
   if (d.rate) { const i = d.rate.lastIndexOf("|"), k = d.rate.slice(0, i), r = ls.get("myrate", {}); r[k] = +d.rate.slice(i + 1); ls.set("myrate", r); toast(t("rated")); openProduct(k); return; }
   if (d.mode) { ls.set("mode", d.mode); route(); return; }
   if (d.copy) { const txt = orderText(); if (navigator.share) navigator.share({ text: txt }).catch(() => {}); else if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => toast("✓")).catch(() => {}); return; }
@@ -464,6 +510,17 @@ $("#qClear").onclick = () => { $("#q").value = ""; $("#qClear").hidden = true; l
 addEventListener("hashchange", () => { closeSheet(); route(); if (!location.hash.startsWith("#/s/")) scrollTo(0, 0); });
 addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
 setInterval(tickFlash, 1000);
+function carGo(car, step){
+  const n = car.querySelectorAll(".scard").length; if (n < 2) return;
+  const i = (((+car.dataset.car + step) % n) + n) % n; car.dataset.car = String(i);
+  car.querySelector(".scard-track").style.transform = `translateX(${i * 100}%)`;
+  car.querySelectorAll(".sale-dots i").forEach((d, k) => d.classList.toggle("on", k === i));
+}
+setInterval(() => { const c = document.querySelector(".sale-car"); if (c && !c.dataset.paused) carGo(c, 1); }, 3500);
+(() => { let x0 = null;
+  document.addEventListener("touchstart", e => { const c = e.target.closest && e.target.closest(".sale-car"); if (c) { c.dataset.paused = "1"; x0 = e.touches[0].clientX; } }, { passive: true });
+  document.addEventListener("touchend", e => { const c = e.target.closest && e.target.closest(".sale-car"); if (!c || x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40) carGo(c, dx < 0 ? 1 : -1); setTimeout(() => delete c.dataset.paused, 4000); }, { passive: true });
+})();
 // تحميل تلقائي عند الاقتراب من نهاية القائمة
 addEventListener("scroll", () => { const m = $("[data-more]"); if (m && m.getBoundingClientRect().top < innerHeight + 300) m.click(); }, { passive:true });
 

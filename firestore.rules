@@ -1,0 +1,49 @@
+rules_version = '2';
+
+// قواعد Firestore — انسخها في Firebase Console > Firestore > Rules ثم اضغط Publish
+// المالك: مستند staff/{بريده} بحقل role = "owner"
+// المدير: مستند staff/{بريده} بحقلي role = "manager" و branch = المعرّف (campau, caniff, farmington, 12mile)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+    function myStaff() {
+      return get(/databases/$(database)/documents/staff/$(myEmail())).data;
+    }
+    function isOwner() {
+      return signedIn() && exists(/databases/$(database)/documents/staff/$(myEmail())) && myStaff().role == 'owner';
+    }
+    function isManagerOf(branch) {
+      return signedIn() && exists(/databases/$(database)/documents/staff/$(myEmail()))
+        && myStaff().role == 'manager' && myStaff().branch == branch;
+    }
+
+    // الموظفون: يقرأ الشخص سجله فقط، والمالك يقرأ الكل ويدير القائمة
+    match /staff/{email} {
+      allow read: if signedIn() && (email == myEmail() || isOwner());
+      allow write: if isOwner();
+    }
+
+    // توفر المنتجات: الجميع يقرأ، ومدير الفرع فقط يكتب
+    match /branches/{branch}/availability/{item} {
+      allow read: if true;
+      allow write: if isManagerOf(branch) || isOwner();
+    }
+
+    // الإعلانات: الجميع يقرأ، ومدير الفرع فقط ينشر ويحذف
+    match /branches/{branch}/ads/{ad} {
+      allow read: if true;
+      allow create, update, delete: if isManagerOf(branch) || isOwner();
+    }
+
+    // كل شيء آخر مغلق
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

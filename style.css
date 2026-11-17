@@ -212,3 +212,12 @@ img{display:block;max-width:100%}
   .top.compact .brand img{height:52px}
   #view{padding:26px 28px 0}
 }
+
+/* ── الحسابات والإدارة ── */
+.ad-form{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.ad-form input,.ad-form select,.ad-form textarea,.ad-search{width:100%;padding:12px 14px;border:1px solid #d9d9d9;border-radius:12px;font:inherit;background:#fff}
+.ad-row,.av-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid #eee;border-radius:12px;margin:6px 0;background:#fff}
+.av-row button,.ad-row button{border:0;border-radius:10px;padding:8px 12px;font:inherit;cursor:pointer;background:#f1f1f1}
+.av-row button.yes{background:#e7f6ec;color:#0c5a36}
+.av-row button.no{background:#fde8e8;color:#b3121a}
+.auth-msg{color:#b3121a;font-size:.9rem}

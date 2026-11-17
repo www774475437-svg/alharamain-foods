@@ -69,6 +69,9 @@ function buildView(){
     return d ? {...p, price:d.price, old:p.old||p.price, deal:true} : p;
   });
   (b.extra||[]).forEach((x,i) => VIEW.unshift({ k:"x_"+b.id+"_"+i, name:x.name, s:norm(x.name), price:x.price, old:x.old||0, stock:1, img:x.img||"", cat:x.cat||"other", deal:!!x.deal, pop:false }));
+  // توفر المنتجات الذي يضبطه مدير الفرع من الحسابات (admin.js)
+  const outSet = window.HR_OUT ? window.HR_OUT(b.id) : new Set();
+  if (outSet.size) VIEW = VIEW.map(p => outSet.has(p.k) ? {...p, stock:0} : p);
   byKey = new Map(VIEW.map(p => [p.k, p]));
 }
 
@@ -176,7 +179,7 @@ function storeCards(){
       <a href="tel:${b.phone.replace(/\D/g,"")}" dir="ltr">📞 ${b.phone}</a>
       <a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(b.addr)}">🗺 ${t("dir")}</a></div></div>`).join("");
 }
-const vStores = () => `<div class="page-h"><h1>📍 ${t("stores")}</h1></div>` + storeCards();
+const vStores = () => `<div class="page-h"><h1>📍 ${t("stores")}</h1></div>` + storeCards() + `<a class="big alt" href="#/acc">👤 حساب المدير / المالك</a>`;
 
 /* ── التوجيه ── */
 function route(){
@@ -188,6 +191,7 @@ function route(){
   else if (a === "cart") { html = vCart(); tab = "cart"; }
   else if (a === "fav") { html = vFav(); tab = "fav"; }
   else if (a === "stores") { html = vStores(); tab = "stores"; }
+  else if (a === "acc") { html = window.HR_ADMIN ? window.HR_ADMIN.view() : `<div class="empty">…</div>`; tab = "stores"; }
   else html = vHome();
   $("#view").innerHTML = html;
   document.querySelectorAll(".tabbar a").forEach(x => x.classList.toggle("on", x.dataset.tab === tab));
@@ -285,6 +289,8 @@ addEventListener("scroll", () => { const m = $("[data-more]"); if (m && m.getBou
 $("#logo").src = "logo.png";
 let lastC = false; addEventListener("scroll", () => { const c = scrollY > (lastC ? 40 : 140); if (c !== lastC) { lastC = c; $("#top").classList.toggle("compact", c); } }, { passive:true });
 chrome(); route();
+window.HR_REFRESH = () => { if (loaded) { buildView(); route(); } };
+window.HR_ALL = () => ALL;
 fetch("catalog.json").then(r => r.json()).then(d => {
   CAT_IDS = d.c;
   const seen = {};

@@ -282,7 +282,8 @@ addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
 addEventListener("scroll", () => { const m = $("[data-more]"); if (m && m.getBoundingClientRect().top < innerHeight + 300) m.click(); }, { passive:true });
 
 /* ── بدء التشغيل ── */
-$("#logo").src = BRAND.logo;
+$("#logo").src = "logo.png";
+let lastC = false; addEventListener("scroll", () => { const c = scrollY > (lastC ? 40 : 140); if (c !== lastC) { lastC = c; $("#top").classList.toggle("compact", c); } }, { passive:true });
 chrome(); route();
 fetch("catalog.json").then(r => r.json()).then(d => {
   CAT_IDS = d.c;

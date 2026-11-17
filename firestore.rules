@@ -41,6 +41,11 @@ service cloud.firestore {
       allow create, update, delete: if isManagerOf(branch) || isOwner();
     }
 
+    // حساب الزبون: كل شخص يقرأ ويكتب مستنده فقط (المفضلة والاسم)
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
     // كل شيء آخر مغلق
     match /{document=**} {
       allow read, write: if false;

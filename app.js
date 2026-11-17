@@ -249,6 +249,7 @@ function badge(){
   el.hidden = !n; el.textContent = n;
 }
 function refresh(){ buildView(); chrome(); route(); }
+window.HR_MERGE_FAVS = arr => { const before = favs.size; (arr || []).forEach(k => favs.add(k)); ls.set("favs", [...favs]); if (favs.size !== before) refresh(); return [...favs]; };
 
 /* ── أفعال ── */
 function toast(m){ const el = $("#toast"); el.textContent = m; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1700); }
@@ -301,7 +302,7 @@ document.addEventListener("click", e => {
   else if (d.dec) setQty(d.dec, -1);
   else if (d.del) setQty(d.del, 0, 0);
   else if (d.open) openProduct(d.open);
-  else if (d.fav) { favs.has(d.fav) ? favs.delete(d.fav) : favs.add(d.fav); ls.set("favs", [...favs]); el.classList.toggle("on"); if (location.hash.startsWith("#/fav")) route(); }
+  else if (d.fav) { favs.has(d.fav) ? favs.delete(d.fav) : favs.add(d.fav); ls.set("favs", [...favs]); window.HR_SAVE_FAVS && window.HR_SAVE_FAVS([...favs]); el.classList.toggle("on"); if (location.hash.startsWith("#/fav")) route(); }
   else if (d.pick) pickBranch(d.pick);
   else if (d.locate) locate(false);
   else if (d.more) { listState.n += PAGE; const y = scrollY; route(); scrollTo(0, y); }

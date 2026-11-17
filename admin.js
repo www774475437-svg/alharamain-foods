@@ -57,6 +57,22 @@ function subscribeAds(bid){
 }
 window.HR_ADS = bid => { subscribeAds(bid); return adsCache.get(bid) || []; };
 
+/* ── حساب الزبون: المفضلة تُحفظ مع الحساب ── */
+let saveT = null;
+window.HR_SAVE_FAVS = arr => {
+  if (!user) return;
+  clearTimeout(saveT);
+  saveT = setTimeout(() => setDoc(doc(db, "users", user.uid), { favs: arr, updated: serverTimestamp() }, { merge: true })
+    .catch(e => console.warn("favs", e.message)), 1500);
+};
+async function loadCustomer(){
+  const ref = doc(db, "users", user.uid);
+  const snap = await getDoc(ref);
+  const cloud = snap.exists() && Array.isArray(snap.data().favs) ? snap.data().favs : [];
+  const merged = window.HR_MERGE_FAVS ? window.HR_MERGE_FAVS(cloud) : cloud;
+  await setDoc(ref, { email: user.email || "", name: user.displayName || "", favs: merged, updated: serverTimestamp() }, { merge: true });
+}
+
 /* ── الدخول والصلاحيات ── */
 async function loadStaff(){
   staff = null;
@@ -71,9 +87,22 @@ async function loadStaff(){
 onAuthStateChanged(auth, async u => {
   user = u;
   await loadStaff();
+  if (user) { try { await loadCustomer(); } catch (e) { console.warn("account", e.message); } }
   adminReady = true;
+  syncHeader();
   renderIfOpen();
 });
+
+/* أزرار الأعلى: «حسابي» للجميع، و«المطورين» للمالك و«فرعي» للمدير فقط */
+function syncHeader(){
+  const acc = document.querySelector("#accBtn"), dev = document.querySelector("#devBtn");
+  if (acc) acc.textContent = user ? "👤 حسابي" : "👤 دخول";
+  if (dev) {
+    const isOwner = !!staff && staff.role === "owner", isMgr = !!staff && staff.role === "manager";
+    dev.hidden = !(isOwner || isMgr);
+    dev.textContent = isOwner ? "🛠 المطورين" : "🏪 فرعي";
+  }
+}
 
 function renderIfOpen(){
   if (location.hash.startsWith("#/acc")) {
@@ -88,8 +117,8 @@ function view(){
   if (!user) return loginView();
   if (!user.emailVerified && user.providerData.some(p => p.providerId === "password")) return verifyView();
   if (!staff) return `<div class="page-h"><h1>👤 حسابي</h1></div>
-    <p>${esc(user.email)}</p>
-    <p>هذا الحساب ليس لمدير أو مالك. اطلب من مالك التطبيق إضافة بريدك.</p>
+    <p><b>${esc(user.displayName || "")}</b> <span dir="ltr">${esc(user.email || "")}</span></p>
+    <p>مفضلتك محفوظة مع حسابك، وتظهر على أي جهاز تسجل فيه.</p>
     <button class="big alt" data-ad="signout">تسجيل الخروج</button>`;
   if (staff.role === "owner") return ownerView();
   return toolsView();
@@ -159,7 +188,7 @@ function ownerView(){
   const rows = staffList.map(s => `<div class="ad-row"><b dir="ltr">${esc(s.id)}</b>
       <small>${s.role === "owner" ? "مالك" : "مدير: " + esc(BRANCH_NAMES[s.branch] || s.branch || "")}</small>
       <button data-ad="removestaff" data-id="${esc(s.id)}">حذف</button></div>`).join("");
-  return `<div class="page-h"><h1>🛠 لوحة المالك</h1></div>
+  return `<div class="page-h"><h1>🛠 المطورين</h1></div>
     <h2>إضافة مدير</h2>
     <form class="ad-form" data-form="staff">
       <input type="email" name="email" placeholder="بريد المدير" required dir="ltr">

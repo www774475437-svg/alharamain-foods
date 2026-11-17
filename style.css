@@ -229,3 +229,8 @@ img{display:block;max-width:100%}
 .faq{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 14px;margin:8px 0}
 .faq summary{font-weight:700;cursor:pointer}
 .faq p{margin:8px 0 0;color:#444;line-height:1.7}
+
+
+/* أزرار الحساب في الأعلى */
+.top a.lang{display:inline-flex;align-items:center;text-decoration:none}
+.top .lang[hidden]{display:none}

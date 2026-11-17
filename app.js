@@ -77,6 +77,8 @@ function buildView(){
     return d ? {...p, price:d.price, old:p.old||p.price, deal:true} : p;
   });
   (b.extra||[]).forEach((x,i) => VIEW.unshift({ k:"x_"+b.id+"_"+i, name:x.name, s:norm(x.name), price:x.price, old:x.old||0, stock:1, img:x.img||"", cat:x.cat||"other", deal:!!x.deal, pop:false }));
+  // منتجات السيل النشط لهذا الفرع فقط (sales.js)
+  if (window.HR_SALE_ITEMS) VIEW.push(...window.HR_SALE_ITEMS(b.id).map(p => ({ ...p, stock: 1 })));
   // توفر المنتجات الذي يضبطه مدير الفرع من الحسابات (admin.js)
   const outSet = window.HR_OUT ? window.HR_OUT(b.id) : new Set();
   if (outSet.size) VIEW = VIEW.map(p => outSet.has(p.k) ? {...p, stock:0} : p);
@@ -110,7 +112,9 @@ function vHome(){
   const counts = {}; VIEW.forEach(p => counts[p.cat] = (counts[p.cat]||0)+1);
   const cats = CATS.filter(c => counts[c[0]]);
   const stock = VIEW.filter(p => p.stock);
-  let h = `<section class="sec"><div class="hero" style="background:linear-gradient(135deg,${b.color},color-mix(in srgb,${b.color} 60%,#000))">
+  const act = window.HR_SALE_ACTIVE ? window.HR_SALE_ACTIVE(b.id) : [];
+  let h = act.map(s => `<a class="sale-banner" href="#/sale"><b>🔥 ${esc(s.title[L2()])} · ${esc(s.dates[L2()])}</b><span>${L2()==="ar"?"تسوّق السيل ›":"Shop the sale ›"}</span></a>`).join("");
+  h += `<section class="sec"><div class="hero" style="background:linear-gradient(135deg,${b.color},color-mix(in srgb,${b.color} 60%,#000))">
       <span class="tag">${t("heroTag")}</span><h2>${esc(b.banner[L2()])}</h2><p>${t("heroP")}</p>
       <div class="hero-btns"><a class="hb" href="#/cats">${t("start")}</a><a class="hb ghost" href="tel:${b.phone.replace(/\D/g,"")}">📞 ${t("call")}</a></div>
       <span class="em">🛒</span></div></section>
@@ -157,6 +161,32 @@ function vList(key, q){
       <button class="pill ${listState.stock?"on":""}" data-stock="1">${t("onlyStock")}</button></div>
     ${list.length ? `<div class="grid">${list.slice(0,listState.n).map(card).join("")}</div>${list.length>listState.n?`<button class="more" data-more="1">${t("more")}</button>`:""}`
                   : `<div class="empty"><i>🔎</i>${t("noRes")}</div><div class="soon-grid pay"><button class="soon-btn" data-soon="1">${L2()==="ar"?"📝 اطلب هذا المنتج":"📝 Request this item"}<small>${t("soon")}</small></button></div>`}`;
+}
+function vSale(){
+  const b = branch(), L = L2(), act = window.HR_SALE_ACTIVE ? window.HR_SALE_ACTIVE(b.id) : [];
+  const staffLink = window.HR_STAFF && window.HR_STAFF() ? `<a class="pill" href="#/sale/archive">📚 ${L==="ar"?"سجل السيلات":"Sale archive"}</a>` : "";
+  const head = `<div class="page-h"><a class="back" href="#/" aria-label="back">←</a><h1>🔥 ${L==="ar"?"السيل":"Sale"}</h1></div>`;
+  if (!act.length) return head + `<div class="empty"><i>🗓</i>${L==="ar"?"لا يوجد سيل نشط لهذا الفرع الآن.":"No sale is running at this store right now."}</div><div class="pills">${staffLink}</div>`;
+  return head + act.map(s => {
+    const groups = s.groups.map(g => {
+      const items = VIEW.filter(p => p.sale && p.sale.sid === s.id && p.sale.gid === g.id);
+      if (!items.length) return "";
+      return `<div class="sale-group"><div class="sec-h"><h2>${g[L]}</h2><button class="pill on" data-addgroup="${esc(s.id + "|" + g.id)}">＋ ${L==="ar"?"أضف الكل للسلة":"Add all to cart"}</button></div>
+        <div class="grid">${items.map(card).join("")}</div></div>`;
+    }).join("");
+    return `<section class="sale-h"><h1>${esc(s.title[L])}</h1><p>${esc(s.dates[L])}</p>
+      <div class="pills"><button class="pill" data-share="${esc(s.id)}">🔗 ${L==="ar"?"مشاركة السيل":"Share sale"}</button>${staffLink}</div></section>` + groups;
+  }).join("");
+}
+function vArchive(){
+  const L = L2(), st = window.HR_STAFF ? window.HR_STAFF() : null;
+  const head = `<div class="page-h"><a class="back" href="#/sale" aria-label="back">←</a><h1>📚 ${L==="ar"?"سجل السيلات":"Sale archive"}</h1></div>`;
+  if (!st) return head + `<div class="empty"><i>🔒</i>${L==="ar"?"هذه الصفحة للمدير والمشرفين فقط.":"For managers and staff only."}</div>`;
+  const b = st.role === "owner" ? null : (st.branch || null);
+  const list = window.HR_SALE_ARCHIVE ? window.HR_SALE_ARCHIVE(b) : [];
+  if (!list.length) return head + `<div class="empty"><i>🗂</i>${L==="ar"?"لا توجد سيلات منتهية بعد.":"No finished sales yet."}</div>`;
+  return head + list.map(s => `<div class="store"><div class="store-h"><div><h3>${esc(s.title[L])}</h3><p>${esc(s.dates[L])}</p>
+    <p>${s.groups.reduce((n,g)=>n+g.items.length,0)} ${t("products")} · ${s.branches.map(x => esc((BR.find(y=>y.id===x)||{})[L2()]||x)).join(" / ")}</p></div></div></div>`).join("");
 }
 function vFav(){
   const list = VIEW.filter(p => favs.has(p.k));
@@ -239,6 +269,7 @@ function route(){
   else if (a === "cart") { html = vCart(); tab = "cart"; }
   else if (a === "fav") { html = vFav(); tab = "fav"; }
   else if (a === "stores") { html = vStores(); tab = "stores"; }
+  else if (a === "sale") { html = b === "archive" ? vArchive() : vSale(); tab = "home"; }
   else if (a === "ai") { html = window.HR_AI ? window.HR_AI.view() : "<p>…</p>"; tab = "stores"; }
   else if (a === "help" || a === "recipes") { html = vTemplate(a); tab = "stores"; }
   else if (a === "acc") { html = window.HR_ADMIN ? window.HR_ADMIN.view() : `<div class="empty">…</div>`; tab = "stores"; }
@@ -309,8 +340,19 @@ function sendOrder(){
 }
 
 document.addEventListener("click", e => {
-  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close]");
+  const el = e.target.closest("[data-inc],[data-dec],[data-del],[data-open],[data-fav],[data-pick],[data-locate],[data-more],[data-sort],[data-stock],[data-clear],[data-wa],[data-close],[data-addgroup],[data-share]");
   if (!el) return; const d = el.dataset;
+  if (d.addgroup) {
+    const [sid, gid] = d.addgroup.split("|"), c = cart();
+    VIEW.filter(p => p.sale && p.sale.sid === sid && p.sale.gid === gid && p.stock).forEach(p => { c[p.k] = (c[p.k] || 0) + 1; });
+    ls.set("carts", carts); badge(); route(); toast(t("added")); return;
+  }
+  if (d.share) {
+    const url = location.origin + location.pathname + "#/sale";
+    if (navigator.share) navigator.share({ title: document.title, url }).catch(() => {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(url).then(() => toast("✓ " + url)).catch(() => toast(url));
+    return;
+  }
   if (d.inc) { setQty(d.inc, 1); toast(t("added")); }
   else if (d.dec) setQty(d.dec, -1);
   else if (d.del) setQty(d.del, 0, 0);
@@ -348,6 +390,16 @@ addEventListener("scroll", () => { const m = $("[data-more]"); if (m && m.getBou
 /* ── بدء التشغيل ── */
 $("#logo").src = "logo.png";
 let lastC = false; addEventListener("scroll", () => { const c = scrollY > (lastC ? 40 : 140); if (c !== lastC) { lastC = c; $("#top").classList.toggle("compact", c); } }, { passive:true });
+// نافذة السيل: تظهر مرة واحدة في الجلسة بعد أن يتصفح الزبون قليلًا، وفقط إذا كان هناك سيل نشط لفرعه
+let saleShown = sessionStorage.getItem("hr_sale_popup") === "1";
+addEventListener("scroll", () => {
+  if (saleShown || scrollY < 500 || !window.HR_SALE_ACTIVE) return;
+  const act = window.HR_SALE_ACTIVE(branch().id); if (!act.length) return;
+  saleShown = true; sessionStorage.setItem("hr_sale_popup", "1");
+  setTimeout(() => { const s = act[0], L = L2();
+    openSheet(`<span class="pd-cat">🔥 ${L==="ar"?"جديد":"New"}</span><h2>${esc(s.title[L])}</h2><p>${esc(s.dates[L])}</p>
+      <a class="big" href="#/sale" data-close="1">${L==="ar"?"تسوّق السيل":"Shop the sale"}</a>`); }, 1200);
+}, { passive: true });
 chrome(); route();
 window.HR_REFRESH = () => { if (loaded) { buildView(); route(); } };
 window.HR_ALL = () => ALL;

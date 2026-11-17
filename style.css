@@ -255,3 +255,12 @@ img{display:block;max-width:100%}
 /* أزرار الدفع المؤجلة */
 .soon-grid.pay{margin-top:10px}
 .faq p{white-space:pre-line}
+
+/* ── السيلات ── */
+.sale-banner{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 14px;padding:12px 14px;border-radius:14px;background:var(--red);color:#fff;text-decoration:none;font-weight:800}
+.sale-banner span{font-size:.85rem;white-space:nowrap}
+.sale-h{margin:6px 0 12px}
+.sale-h h1{margin:0 0 4px}
+.sale-h p{margin:0 0 8px;color:var(--muted,#666)}
+.sale-group{margin-top:18px}
+.sale-group .sec-h{flex-wrap:wrap;gap:8px}

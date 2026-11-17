@@ -251,3 +251,4 @@ document.addEventListener("change", e => {
 });
 
 window.HR_ADMIN = { view };
+window.HR_STAFF = () => staff;   // يستخدمه app.js لإظهار سجل السيلات للمدير والمشرفين

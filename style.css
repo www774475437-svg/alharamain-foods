@@ -221,3 +221,11 @@ img{display:block;max-width:100%}
 .av-row button.yes{background:#e7f6ec;color:#0c5a36}
 .av-row button.no{background:#fde8e8;color:#b3121a}
 .auth-msg{color:#b3121a;font-size:.9rem}
+
+/* ── قريباً + صفحات نموذجية ── */
+.soon-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.soon-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:14px 8px;border:1px dashed #b9b9b9;border-radius:14px;background:#fff;font:inherit;color:#222;text-decoration:none;text-align:center;cursor:pointer}
+.soon-btn small{color:#888;font-size:.75rem}
+.faq{background:#fff;border:1px solid #eee;border-radius:12px;padding:12px 14px;margin:8px 0}
+.faq summary{font-weight:700;cursor:pointer}
+.faq p{margin:8px 0 0;color:#444;line-height:1.7}

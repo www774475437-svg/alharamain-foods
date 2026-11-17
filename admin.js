@@ -23,6 +23,8 @@ let user = null;      // المستخدم الحالي
 let staff = null;     // { role: "owner"|"manager", branch? } أو null
 let staffList = [];   // قائمة المدراء (للمالك فقط)
 let adminReady = false;
+let actingBranch = null;   // فرع يديره المالك من لوحته
+const curBranch = () => (staff && staff.role === "owner") ? (actingBranch || "campau") : (staff && staff.branch);
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
 const enc = k => encodeURIComponent(k);
@@ -90,7 +92,7 @@ function view(){
     <p>هذا الحساب ليس لمدير أو مالك. اطلب من مالك التطبيق إضافة بريدك.</p>
     <button class="big alt" data-ad="signout">تسجيل الخروج</button>`;
   if (staff.role === "owner") return ownerView();
-  return managerView();
+  return toolsView();
 }
 
 function loginView(){
@@ -117,12 +119,13 @@ function verifyView(){
     <button class="big alt" data-ad="signout">تسجيل الخروج</button>`;
 }
 
-function managerView(){
-  const b = staff.branch;
+function toolsView(){
+  const b = curBranch();
+  const picker = staff.role === "owner" ? `<label>الفرع: <select id="branchPick">${BRANCH_IDS.map(x => `<option value="${x}" ${x===b?"selected":""}>${esc(BRANCH_NAMES[x])}</option>`).join("")}</select></label>` : "";
   const products = (window.HR_ALL ? window.HR_ALL() : []).slice(0, 2000);
   const out = window.HR_OUT(b);
   const ads = window.HR_ADS(b);
-  return `<div class="page-h"><h1>🏪 ${esc(BRANCH_NAMES[b] || b)}</h1></div>
+  return `<div class="page-h"><h1>🏪 ${esc(BRANCH_NAMES[b] || b)}</h1></div>${picker}
     <h2>نشر إعلان</h2>
     <form class="ad-form" data-form="ad">
       <input name="title" placeholder="عنوان الإعلان" required>
@@ -147,9 +150,9 @@ function productRows(products, out, q){
   }).join("");
 }
 window.HR_AV_FILTER = q => {
-  if (!staff || staff.role !== "manager") return;
+  if (!staff) return;
   const products = (window.HR_ALL ? window.HR_ALL() : []);
-  document.querySelector("#avList").innerHTML = productRows(products, window.HR_OUT(staff.branch), q);
+  document.querySelector("#avList").innerHTML = productRows(products, window.HR_OUT(curBranch()), q);
 };
 
 function ownerView(){
@@ -164,6 +167,7 @@ function ownerView(){
       <button class="big" type="submit">إضافة</button>
     </form>
     <h2>المدراء</h2>${rows || "<p>لا يوجد مدراء بعد.</p>"}
+    <h2>إدارة الفروع</h2>${toolsView()}
     <button class="big alt" data-ad="signout">تسجيل الخروج</button>`;
 }
 
@@ -187,7 +191,7 @@ document.addEventListener("submit", async e => {
       f.reset();
     }
     else if (kind === "ad") {
-      await addDoc(collection(db, "branches", staff.branch, "ads"), {
+      await addDoc(collection(db, "branches", curBranch(), "ads"), {
         title: fd.get("title").trim(), text: fd.get("text").trim(), by: user.email, at: serverTimestamp()
       });
       f.reset();
@@ -203,14 +207,18 @@ document.addEventListener("click", async e => {
     else if (a === "signout") await signOut(auth);
     else if (a === "resend" && user) await sendEmailVerification(user);
     else if (a === "toggle" && staff) {
-      const ref = doc(db, "branches", staff.branch, "availability", enc(btn.dataset.k));
+      const ref = doc(db, "branches", curBranch(), "availability", enc(btn.dataset.k));
       const isOut = btn.classList.contains("no");
       if (isOut) await deleteDoc(ref);
       else await setDoc(ref, { out: true, by: user.email, at: serverTimestamp() });
     }
-    else if (a === "delad" && staff) await deleteDoc(doc(db, "branches", staff.branch, "ads", btn.dataset.id));
+    else if (a === "delad" && staff) await deleteDoc(doc(db, "branches", curBranch(), "ads", btn.dataset.id));
     else if (a === "removestaff" && staff && staff.role === "owner") await deleteDoc(doc(db, "staff", btn.dataset.id));
   } catch (err) { fail(err); }
+});
+
+document.addEventListener("change", e => {
+  if (e.target.id === "branchPick") { actingBranch = e.target.value; renderIfOpen(); }
 });
 
 window.HR_ADMIN = { view };

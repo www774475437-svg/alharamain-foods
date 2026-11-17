@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قواعد Firestore — نسخ</title>
+<style>
+  body{font-family:-apple-system,system-ui,sans-serif;margin:0;padding:20px;background:#f7f7f7;color:#222}
+  h1{font-size:1.2rem}
+  p{line-height:1.7}
+  textarea{width:100%;height:55vh;direction:ltr;font:13px/1.5 ui-monospace,Menlo,monospace;padding:12px;border:1px solid #ddd;border-radius:12px;box-sizing:border-box;background:#fff}
+  button{width:100%;padding:16px;font-size:1.05rem;border:0;border-radius:14px;background:#0c5a36;color:#fff;margin:12px 0;cursor:pointer}
+  #msg{text-align:center;font-weight:bold;min-height:1.5em}
+</style>
+</head>
+<body>
+<h1>قواعد Firestore</h1>
+<p>1) اضغط زر النسخ. 2) افتح Firebase Console في Safari على الآيفون، ثم Firestore &gt; Rules. 3) امسح القديم والصق، ثم اضغط Publish.</p>
+<button id="copy">📋 نسخ القواعد</button>
+<div id="msg"></div>
+<textarea id="rules" readonly>rules_version = &#x27;2&#x27;;
+
+// قواعد Firestore — انسخها في Firebase Console &gt; Firestore &gt; Rules ثم اضغط Publish
+// المالك: مستند staff/{بريده} بحقل role = &quot;owner&quot;
+// المدير: مستند staff/{بريده} بحقلي role = &quot;manager&quot; و branch = المعرّف (campau, caniff, farmington, 12mile)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null &amp;&amp; request.auth.token.email_verified == true;
+    }
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+    function myStaff() {
+      return get(/databases/$(database)/documents/staff/$(myEmail())).data;
+    }
+    function isOwner() {
+      return signedIn() &amp;&amp; exists(/databases/$(database)/documents/staff/$(myEmail())) &amp;&amp; myStaff().role == &#x27;owner&#x27;;
+    }
+    function isManagerOf(branch) {
+      return signedIn() &amp;&amp; exists(/databases/$(database)/documents/staff/$(myEmail()))
+        &amp;&amp; myStaff().role == &#x27;manager&#x27; &amp;&amp; myStaff().branch == branch;
+    }
+
+    // الموظفون: يقرأ الشخص سجله فقط، والمالك يقرأ الكل ويدير القائمة
+    match /staff/{email} {
+      allow read: if signedIn() &amp;&amp; (email == myEmail() || isOwner());
+      allow write: if isOwner();
+    }
+
+    // توفر المنتجات: الجميع يقرأ، ومدير الفرع فقط يكتب
+    match /branches/{branch}/availability/{item} {
+      allow read: if true;
+      allow write: if isManagerOf(branch) || isOwner();
+    }
+
+    // الإعلانات: الجميع يقرأ، ومدير الفرع فقط ينشر ويحذف
+    match /branches/{branch}/ads/{ad} {
+      allow read: if true;
+      allow create, update, delete: if isManagerOf(branch) || isOwner();
+    }
+
+    // كل شيء آخر مغلق
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+</textarea>
+<script>
+  const ta = document.getElementById("rules");
+  const msg = document.getElementById("msg");
+  document.getElementById("copy").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(ta.value);
+      msg.textContent = "تم النسخ ✅";
+    } catch (e) {
+      ta.removeAttribute("readonly"); ta.focus(); ta.select(); ta.setSelectionRange(0, 999999);
+      msg.textContent = "اضغط مطولاً على النص ثم انسخ";
+      ta.setAttribute("readonly", "");
+    }
+  });
+</script>
+</body>
+</html>

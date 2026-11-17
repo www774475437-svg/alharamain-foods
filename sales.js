@@ -13,6 +13,7 @@ window.SALES = [
     dates: { ar: "١٧ – ١٩ نوفمبر", en: "Nov 17 – 19" },
     start: "2026-11-17", end: "2026-11-19",
     branches: ["farmington", "12mile"],
+    preview: true,   // تجريبي: يظهر للمالك والمدير فقط حتى يُفتح للجميع
     groups: [
       { id: "meat", ar: "🥩 اللحوم والدواجن (حلال)", en: "🥩 Halal meat & poultry", items: [
         ["Ground Beef", 4.99, "per lb"], ["T-Bone / Porterhouse", 5.49, "per lb"], ["Chuck Roast", 5.49, "per lb"],
@@ -55,8 +56,8 @@ window.HR_TODAY = () => new Date().toLocaleDateString("en-CA", { timeZone: "Amer
 
 /* السيلات النشطة الآن لفرع معيّن */
 window.HR_SALE_ACTIVE = bid => {
-  const today = window.HR_TODAY();
-  return (window.SALES || []).filter(s => s.start <= today && today <= s.end && (!bid || s.branches.includes(bid)));
+  const today = window.HR_TODAY(), staffOn = !!(window.HR_STAFF && window.HR_STAFF());
+  return (window.SALES || []).filter(s => s.start <= today && today <= s.end && (!bid || s.branches.includes(bid)) && (!s.preview || staffOn));
 };
 
 /* السيلات المنتهية (السجل) للفرع، أو كل الفروع للمالك */

@@ -99,6 +99,7 @@ onAuthStateChanged(auth, async u => {
   adminReady = true;
   syncHeader();
   renderIfOpen();
+  if (window.HR_REFRESH) window.HR_REFRESH();   // لإظهار السيلات التجريبية لصاحب الحساب فور معرفة صلاحيته
 });
 
 /* أزرار الأعلى: «حسابي» للجميع، و«المطورين» للمالك و«فرعي» للمدير فقط */

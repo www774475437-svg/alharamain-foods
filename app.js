@@ -284,8 +284,16 @@ document.addEventListener("click", e => {
 });
 $("#scrim").onclick = closeSheet;
 $("#branchBtn").onclick = () => openSheet(`<h2>${t("chooseStore")}</h2>` + storeCards());
-$("#langBtn").onclick = () => openSheet(`<h2>🌐</h2>` + Object.entries(LANGS).map(([k,v]) => `<button class="big ${k===lang?"":"alt"}" data-lang="${k}">${v}</button>`).join(""));
+$("#langBtn").onclick = () => openSheet(`<h2>🌐</h2>` + Object.entries(LANGS).map(([k,v]) => `<button class="big ${k===lang?"":"alt"}" data-lang="${k}">${v}</button>`).join("") + `<button class="big alt" data-tr="1">🌍 Translate to any language</button><div id="gt"></div>`);
 document.addEventListener("click", e => { const b = e.target.closest("[data-lang]"); if (!b) return; lang = b.dataset.lang; ls.set("lang", lang); closeSheet(); refresh(); });
+/* ── ترجمة لأي لغة عبر Google Translate (مجاني) ── */
+function loadTranslate(){
+  const box = document.getElementById("gt"); if (!box) return;
+  window.googleTranslateElementInit = () => { box.innerHTML = ""; new google.translate.TranslateElement({ pageLanguage:"en", autoDisplay:false }, "gt"); };
+  if (window.google && google.translate && google.translate.TranslateElement) return window.googleTranslateElementInit();
+  if (!document.getElementById("gtScript")) { const s = document.createElement("script"); s.id = "gtScript"; s.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"; document.body.appendChild(s); }
+}
+document.addEventListener("click", e => { if (e.target.closest("[data-tr]")) loadTranslate(); });
 let qT; $("#q").oninput = e => { const v = e.target.value.trim(); $("#qClear").hidden = !v; clearTimeout(qT);
   qT = setTimeout(() => { location.hash = v ? "#/s/" + encodeURIComponent(v) : "#/"; }, 250); };
 $("#qClear").onclick = () => { $("#q").value = ""; $("#qClear").hidden = true; location.hash = "#/"; };

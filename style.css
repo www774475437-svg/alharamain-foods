@@ -245,3 +245,13 @@ img{display:block;max-width:100%}
 .lang.icon{padding:6px 9px}
 .lang.icon.in{background:var(--green-2);border-color:var(--green-2)}
 @media (max-width:480px){.brand img{height:62px}.brand{gap:8px}}
+
+/* زر المطورين/الفرع: يظهر للمالك والمدير فقط فوق شريط التنقل */
+.staff-fab{position:fixed;left:14px;bottom:96px;z-index:40;background:#fff;box-shadow:0 8px 22px rgba(20,30,25,.2)}
+.staff-fab[hidden]{display:none}
+/* زر العودة للأعلى */
+.totop{position:fixed;right:14px;bottom:96px;z-index:40;width:44px;height:44px;border-radius:50%;border:0;background:var(--red);color:#fff;font-size:1.2rem;font-weight:900;box-shadow:0 8px 22px rgba(20,30,25,.25)}
+.totop[hidden]{display:none}
+/* أزرار الدفع المؤجلة */
+.soon-grid.pay{margin-top:10px}
+.faq p{white-space:pre-line}

@@ -121,6 +121,9 @@ function vHome(){
   ["dates","rice","tea","spices","coffee","nuts","oils","perfume"].forEach(id => {
     const m = catMeta(id); h += rail(`${m[1]} ${catName(id)}`, stock.filter(p => p.cat === id), "#/c/"+id);
   });
+  const mix = [...stock];
+  for (let i = mix.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [mix[i], mix[j]] = [mix[j], mix[i]]; }
+  h += rail(L2() === "ar" ? "🎲 تصفح عشوائي" : "🎲 Browse mix", mix, "#/cats");
   return h + `<p class="count" style="text-align:center">${t("priceNote")}</p>`;
 }
 function vCats(){
@@ -153,7 +156,7 @@ function vList(key, q){
     <div class="pills">${pill("def",t("sortDef"),listState.sort==="def")}${pill("low",t("sortLow"),listState.sort==="low")}${pill("high",t("sortHigh"),listState.sort==="high")}
       <button class="pill ${listState.stock?"on":""}" data-stock="1">${t("onlyStock")}</button></div>
     ${list.length ? `<div class="grid">${list.slice(0,listState.n).map(card).join("")}</div>${list.length>listState.n?`<button class="more" data-more="1">${t("more")}</button>`:""}`
-                  : `<div class="empty"><i>🔎</i>${t("noRes")}</div>`}`;
+                  : `<div class="empty"><i>🔎</i>${t("noRes")}</div><div class="soon-grid pay"><button class="soon-btn" data-soon="1">${L2()==="ar"?"📝 اطلب هذا المنتج":"📝 Request this item"}<small>${t("soon")}</small></button></div>`}`;
 }
 function vFav(){
   const list = VIEW.filter(p => favs.has(p.k));
@@ -174,6 +177,7 @@ function vCart(){
       <div class="row"><span>${t("items")}</span><b>${n}</b></div>
       <div class="row tot"><span>${t("subtotal")}</span><b>${money(sub)}</b></div><small>${t("taxNote")}</small></div>
     <button class="big wa" data-wa="1">💬 ${t("sendWa")}</button>
+    <div class="soon-grid pay">${["🍎 Apple Pay", "🅿️ PayPal", "🤖 Google Pay"].map(x => `<button class="soon-btn" data-soon="1">${x}<small>${t("soon")}</small></button>`).join("")}</div>
     <a class="big alt" href="tel:${b.phone.replace(/\D/g,"")}">📞 ${t("callStore")} · <span dir="ltr">${b.phone}</span></a>`;
 }
 const dist = (a, b) => { const R=3958.8, r=Math.PI/180, dl=(b.lat-a.lat)*r, dn=(b.lng-a.lng)*r, x=Math.sin(dl/2)**2+Math.cos(a.lat*r)*Math.cos(b.lat*r)*Math.sin(dn/2)**2; return 2*R*Math.asin(Math.sqrt(x)); };
@@ -198,7 +202,15 @@ const SAMPLE = {
     { q:{ar:"ماذا لو كان المنتج غير متوفر؟", en:"What if an item is out of stock?"}, a:{ar:"يظهر لك «غير متوفر» تلقائياً، ويمكنك اختيار منتج بديل.", en:"It shows as out of stock automatically, and you can choose a substitute."} }
   ]},
   recipes: { title:{ar:"وصفات الحرمين", en:"Al-Haramain recipes"}, items:[
-    { q:{ar:"[اسم وصفة نموذجية]", en:"[Sample recipe name]"}, a:{ar:"[المكونات وخطوات التحضير تُضاف هنا لاحقاً]", en:"[Ingredients and steps will be added here later]"} }
+    { q:{ar:"حمص بالطحينة (وصفة نموذجية)", en:"Hummus (sample recipe)"}, a:{
+      ar:"المكونات:\n- علبة حمص مسلوق (400 غم)\n- 3 ملاعق كبيرة طحينة\n- عصير ليمونة\n- فص ثوم صغير\n- ملح\n- ملعقتان زيت زيتون\n\nالتحضير:\n1. صفِّ الحمص واحتفظ بقليل من ماءه.\n2. اخلط الحمص والطحينة والثوم والليمون والملح في الخلاط.\n3. أضف ماء الحمص تدريجياً حتى تصل إلى القوام الناعم.\n4. قدّمه بزيت الزيتون.",
+      en:"Ingredients:\n- 1 can chickpeas (400 g)\n- 3 tbsp tahini\n- juice of 1 lemon\n- 1 small garlic clove\n- salt\n- 2 tbsp olive oil\n\nSteps:\n1. Drain the chickpeas and keep a little of the liquid.\n2. Blend chickpeas, tahini, garlic, lemon and salt.\n3. Add the reserved liquid slowly until smooth.\n4. Serve drizzled with olive oil."} },
+    { q:{ar:"شوربة العدس (وصفة نموذجية)", en:"Lentil soup (sample recipe)"}, a:{
+      ar:"المكونات:\n- كوب عدس أحمر\n- بصلة متوسطة\n- جزرة\n- ملعقة كمون\n- ملح وفلفل\n- 4 أكواب ماء أو مرق\n\nالتحضير:\n1. قطّع البصل والجزرة وقلّبهما في الزيت.\n2. أضف العدس المغسول والماء والكمون.\n3. اتركه يغلي 20 دقيقة حتى ينضج.\n4. اخلطه ناعماً وتبّل بالملح والفلفل.",
+      en:"Ingredients:\n- 1 cup red lentils\n- 1 medium onion\n- 1 carrot\n- 1 tsp cumin\n- salt and pepper\n- 4 cups water or stock\n\nSteps:\n1. Sauté the chopped onion and carrot in oil.\n2. Add rinsed lentils, water and cumin.\n3. Simmer for about 20 minutes until soft.\n4. Blend until smooth and season."} },
+    { q:{ar:"كرات التمر والمكسرات (وصفة نموذجية)", en:"Date and nut balls (sample recipe)"}, a:{
+      ar:"المكونات:\n- كوب تمر منزوع النوى\n- نصف كوب مكسرات\n- ملعقة شوفان\n- ملعقة زبدة سمسم\n\nالتحضير:\n1. اخلط المكسرات والشوفان في الخلاط.\n2. أضف التمر وزبدة السمسم واخلط حتى تتماسك العجينة.\n3. شكّل كرات صغيرة وضعها في الثلاجة 15 دقيقة.",
+      en:"Ingredients:\n- 1 cup pitted dates\n- 1/2 cup nuts\n- 1 tbsp oats\n- 1 tbsp tahini\n\nSteps:\n1. Blend nuts and oats.\n2. Add dates and tahini and blend until it holds together.\n3. Shape into small balls and chill for 15 minutes."} }
   ]}
 };
 const vTemplate = k => {
@@ -348,4 +360,12 @@ fetch("catalog.json").then(r => r.json()).then(d => {
 if (!branchId) { openSheet(`<h2>${t("chooseStore")}</h2>` + storeCards()); locate(true); }
 else if (navigator.permissions) navigator.permissions.query({name:"geolocation"}).then(s => { if (s.state === "granted") locate(true); }).catch(()=>{});
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+
+/* زر العودة للأعلى */
+(() => {
+  const btn = document.getElementById("toTop");
+  if (!btn) return;
+  addEventListener("scroll", () => { btn.hidden = scrollY < 600; }, { passive: true });
+  btn.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
 })();

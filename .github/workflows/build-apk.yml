@@ -38,7 +38,8 @@ jobs:
           yes | "$SDKM" --licenses > /dev/null || true
           "$SDKM" "platform-tools" "platforms;android-33" "platforms;android-34" \
             "build-tools;33.0.2" "build-tools;34.0.0"
-          ls "$ANDROID_HOME"/build-tools "$ANDROID_HOME"/platforms
+          ls "$ANDROID_HOME"
+          ls "$ANDROID_HOME"/platform-tools | head -5
 
       - name: Install Bubblewrap
         run: npm install -g @bubblewrap/cli
@@ -62,6 +63,12 @@ jobs:
           echo "::add-mask::$PW"
           echo "BUBBLEWRAP_KEYSTORE_PASSWORD=$PW" >> "$GITHUB_ENV"
           echo "BUBBLEWRAP_KEY_PASSWORD=$PW" >> "$GITHUB_ENV"
+
+      - name: Debug Bubblewrap requirements
+        run: |
+          BW=$(npm root -g)/@bubblewrap/core
+          grep -rn -i "buildtools\|build-tools\|platform-tools\|androidSdk" "$BW/dist" 2>/dev/null | grep -v "\.map" | head -40
+          grep -rn "isn't correct" "$BW/dist" "$(npm root -g)/@bubblewrap/cli/dist" 2>/dev/null | head -5
 
       - name: Build APK
         # Point Bubblewrap at the preinstalled JDK and SDK so it never asks to install them.

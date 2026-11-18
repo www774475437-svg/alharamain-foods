@@ -20,6 +20,8 @@
   "appVersionCode": 1,
   "appVersion": "1.0.0",
   "minSdkVersion": 21,
+  "targetSdkVersion": 34,
+  "splashScreenFadeOutDuration": 300,
   "fallbackType": "customtabs",
   "shortcuts": [],
   "features": {},

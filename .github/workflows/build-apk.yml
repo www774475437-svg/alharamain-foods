@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: twa
@@ -61,8 +62,11 @@ jobs:
           echo "BUBBLEWRAP_KEY_PASSWORD=$PW" >> "$GITHUB_ENV"
 
       - name: Build APK
-        # Answer "no" to Bubblewrap's installer prompts: JDK and Android SDK are already installed.
-        run: yes n | bubblewrap build --skipPwaValidation
+        # Point Bubblewrap at the preinstalled JDK and SDK so it never asks to install them.
+        run: |
+          mkdir -p ~/.bubblewrap
+          printf '{"jdkPath": "%s", "androidSdkPath": "%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
+          bubblewrap build --skipPwaValidation
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

@@ -19,7 +19,7 @@
   "maskableIconUrl": "https://www774475437-svg.github.io/alharamain-foods/icon-512.png",
   "appVersionCode": 1,
   "appVersion": "1.0.0",
-  "minSdkVersion": 21,
+  "minSdkVersion": 24,
   "targetSdkVersion": 34,
   "splashScreenFadeOutDuration": 300,
   "fallbackType": "customtabs",

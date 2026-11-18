@@ -12,6 +12,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     defaults:
       run:
         working-directory: twa
@@ -85,3 +87,14 @@ jobs:
           name: alharamain-foods-apk
           path: twa/app-release-signed.apk
           if-no-files-found: error
+
+      - name: Publish APK as a release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cp app-release-signed.apk Al-Haramain-Foods.apk
+          gh release delete apk-latest --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag || true
+          gh release create apk-latest Al-Haramain-Foods.apk --repo "$GITHUB_REPOSITORY" \
+            --title "Al-Haramain Foods (latest APK)" \
+            --notes "Latest Android build. Download Al-Haramain-Foods.apk and install it on Android." \
+            --latest=false

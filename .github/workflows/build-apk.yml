@@ -68,7 +68,10 @@ jobs:
           # Point Bubblewrap at the preinstalled JDK and SDK so it never asks to install them.
           mkdir -p ~/.bubblewrap
           printf '{"jdkPath": "%s", "androidSdkPath": "%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
-          bubblewrap build --skipPwaValidation
+          # Bubblewrap asks interactive questions (e.g. "regenerate project?"). Run it in a pseudo-terminal
+          # and answer "no" to each, so it keeps the committed twa-manifest.json as is.
+          { sleep 10; for i in 1 2 3 4 5; do printf 'n\r\n'; sleep 4; done; } | \
+            script -qec "bubblewrap build --skipPwaValidation" /dev/null
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

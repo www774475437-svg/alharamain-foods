@@ -66,11 +66,10 @@ jobs:
 
       - name: Debug Bubblewrap requirements
         run: |
-          ROOT=$(npm root -g)/@bubblewrap/cli/node_modules/@bubblewrap/core/dist/lib
-          sed -n '1,40p' "$ROOT/androidSdk/AndroidSdkTools.js" | grep -n "BUILD_TOOLS\|exports\."
-          sed -n '99,110p' "$ROOT/androidSdk/AndroidSdkTools.js"
-          grep -rn --include=*.js "isn't correct" "$(npm root -g)/@bubblewrap" | cut -c1-200 | head -3
-          F=$(grep -rl --include=*.js "isn't correct" "$(npm root -g)/@bubblewrap" | head -1); echo "FILE=$F"; grep -n -B12 "isn't correct" "$F" | head -40
+          ROOT=$(npm root -g)/@bubblewrap
+          grep -rn --include=*.js "provided" "$ROOT" | grep -v "\.map" | cut -c1-260 | head -8
+          grep -rn --include=*.js "androidSdk" "$ROOT/cli/dist/lib/cmds" | cut -c1-260 | head -12
+          grep -rn --include=*.js "checkSdk\|validateSdk\|isSdk\|sdkValid" "$ROOT" | cut -c1-260 | head -8
 
       - name: Build APK
         # Point Bubblewrap at the preinstalled JDK and SDK so it never asks to install them.

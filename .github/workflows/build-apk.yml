@@ -68,10 +68,16 @@ jobs:
           # Point Bubblewrap at the preinstalled JDK and SDK so it never asks to install them.
           mkdir -p ~/.bubblewrap
           printf '{"jdkPath": "%s", "androidSdkPath": "%s"}\n' "$JAVA_HOME" "$ANDROID_HOME" > ~/.bubblewrap/config.json
-          # Bubblewrap asks interactive questions (e.g. "regenerate project?"). Run it in a pseudo-terminal
-          # and answer "no" to each, so it keeps the committed twa-manifest.json as is.
-          { sleep 10; for i in 1 2 3 4 5; do printf 'n\r\n'; sleep 4; done; } | \
-            script -qec "bubblewrap build --skipPwaValidation" /dev/null
+          # Bubblewrap asks interactive questions. Run each command in a pseudo-terminal and answer "no".
+          answer_no() {
+            { sleep 10; for i in 1 2 3 4 5; do printf 'n\r\n'; sleep 4; done; } | \
+              script -qec "$1" /dev/null || true
+          }
+          # 1) Generate the Android project (gradle wrapper, app module) from twa-manifest.json.
+          answer_no "bubblewrap update --skipVersionUpgrade"
+          # 2) Build the signed release APK.
+          answer_no "bubblewrap build --skipPwaValidation"
+          test -f app-release-signed.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

@@ -1,0 +1,33 @@
+{
+  "packageId": "com.alharamain.foods",
+  "host": "www774475437-svg.github.io",
+  "webManifestUrl": "https://www774475437-svg.github.io/alharamain-foods/manifest.json",
+  "startUrl": "/alharamain-foods/",
+  "name": "Al-Haramain Foods",
+  "launcherName": "Al-Haramain",
+  "display": "standalone",
+  "orientation": "portrait",
+  "themeColor": "#ffffff",
+  "navigationColor": "#ffffff",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": false,
+  "enableSiteSettingsShortcut": true,
+  "iconUrl": "https://www774475437-svg.github.io/alharamain-foods/icon-512.png",
+  "maskableIconUrl": "https://www774475437-svg.github.io/alharamain-foods/icon-512.png",
+  "appVersionCode": 1,
+  "appVersion": "1.0.0",
+  "minSdkVersion": 21,
+  "fallbackType": "customtabs",
+  "shortcuts": [],
+  "features": {},
+  "generatorApp": "bubblewrap-cli",
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "alharamain"
+  }
+}

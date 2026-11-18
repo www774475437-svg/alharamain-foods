@@ -1,0 +1,71 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'twa/**'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: twa
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Android build tools
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Prepare signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          set -e
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > android.keystore
+            PW="$KEYSTORE_PASSWORD"
+          else
+            echo "::warning::No KEYSTORE secrets set. A temporary key is used, so updates will not install over this APK."
+            PW=$(openssl rand -base64 18 | tr -d '/+=')
+            keytool -genkeypair -v -keystore android.keystore -storepass "$PW" -keypass "$PW" \
+              -alias alharamain -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Al-Haramain Foods, O=Al-Haramain, C=US"
+          fi
+          echo "BUBBLEWRAP_KEYSTORE_PASSWORD=$PW" >> "$GITHUB_ENV"
+          echo "BUBBLEWRAP_KEY_PASSWORD=$PW" >> "$GITHUB_ENV"
+
+      - name: Build APK
+        run: bubblewrap build --skipPwaValidation
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: alharamain-foods-apk
+          path: twa/app-release-signed.apk
+          if-no-files-found: error

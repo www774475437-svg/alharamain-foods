@@ -48,6 +48,8 @@ const ls = { get:(k,d)=>{ try{ const v=localStorage.getItem("hr_"+k); return v==
 let lang = ls.get("lang","en");
 const LANGS = { en:"English", ar:"العربية", hi:"हिन्दी", zh:"中文", ko:"한국어", bn:"বাংলা", ku:"کوردی" };
 const L2 = () => (lang === "ar" || lang === "ku") ? "ar" : "en";   // لغة الأسماء العربية/الإنجليزية
+const FRESH = ["fruit", "produce", "nuts"];
+const FRESH_BAR = () => `<nav class="fresh-bar">${["fruit", "produce", "nuts"].map(id => `<a href="#/c/${id}">${catMeta(id)[1]} ${catName(id)}</a>`).join("")}<a class="fresh-all" href="#/c/fresh">🛒 ${L2() === "ar" ? "جميع الأنواع" : "All types"}</a></nav>`;
 const ARIDX = () => (lang === "ar" || lang === "ku") ? 2 : 3;
 let branchId = ls.get("branch", null);
 let carts = ls.get("carts", {});
@@ -82,6 +84,7 @@ function buildView(){
   });
   (b.extra||[]).forEach((x,i) => VIEW.unshift({ k:"x_"+b.id+"_"+i, name:x.name, s:norm(x.name), price:x.price, old:x.old||0, stock:1, img:x.img||"", cat:x.cat||"other", deal:!!x.deal, pop:false }));
   // منتجات السيل النشط لهذا الفرع فقط (sales.js)
+  if (window.PRODUCE) VIEW.push(...window.PRODUCE.map((x, i) => ({ k:"pr_"+i, name:x[0]+" · "+x[2], s:norm(x[0]), price:x[1], old:0, stock:1, img:"", cat:x[3], deal:false, pop:false, est:true })));
   if (window.HR_SALE_ITEMS) VIEW.push(...window.HR_SALE_ITEMS(b.id).map(p => ({ ...p, stock: 1 })));
   // توفر المنتجات الذي يضبطه مدير الفرع من الحسابات (admin.js)
   const outSet = window.HR_OUT ? window.HR_OUT(b.id) : new Set();
@@ -98,12 +101,12 @@ function actionBar(p){
            : `<button class="addbar" data-inc="${esc(p.k)}">+ ${t("add")}</button>`;
 }
 function card(p){
-  return `<article class="card ${p.stock?"":"oos"}" data-card="${esc(p.k)}">
+  return `<article class="card ${p.stock?"":"oos"}${p.est?" est":""}" data-card="${esc(p.k)}">
     ${p.deal ? `<span class="badge sale">${t("sale")}</span>` : p.pop ? `<span class="badge">${t("hot")}</span>` : ""}
     <button class="heart ${favs.has(p.k)?"on":""}" data-fav="${esc(p.k)}" aria-label="favorite">${heartSvg}</button>
     <div class="pic${p.img ? "" : " noimg"}" data-name="${esc(p.name)}" data-open="${esc(p.k)}">${p.img ? `<img loading="lazy" decoding="async" src="${esc(img(p.img))}" alt="${esc(p.name)}" onerror="this.closest('.pic').classList.add('noimg')">` : ""}</div>
     <div class="info" data-open="${esc(p.k)}"><h3>${esc(p.name)}</h3>
-      <div class="price"><b>${money(p.price)}</b>${p.old>p.price?`<s>${money(p.old)}</s>`:""}</div></div>
+      <div class="price"><b>${money(p.price)}</b>${p.est?` <span class="est-tag">${L2()==="ar"?"تقريبي":"est."}</span>`:""}${p.old>p.price?`<s>${money(p.old)}</s>`:""}</div></div>
     <div data-bar="${esc(p.k)}">${actionBar(p)}</div>
   </article>`;
 }
@@ -202,7 +205,7 @@ function vHome(){
   const stock = VIEW.filter(p => p.stock);
   const act = window.HR_SALE_ACTIVE ? window.HR_SALE_ACTIVE(b.id) : [];
   let h = (window.HR_ADS ? window.HR_ADS(b.id) : []).filter(a => !a.endsAt || a.endsAt > Date.now()).map(adBanner).join("") + act.map(s => `<a class="sale-banner" href="#/sale"><b>🔥 ${esc(s.title[L2()])} · ${esc(s.dates[L2()])}</b><span>${L2()==="ar"?"تسوّق السيل ›":"Shop the sale ›"}</span></a>`).join("");
-  h += `<section class="sec"><div class="hero" style="background:linear-gradient(135deg,${b.color},color-mix(in srgb,${b.color} 60%,#000))">
+  h += FRESH_BAR() + `<section class="sec"><div class="hero" style="background:linear-gradient(135deg,${b.color},color-mix(in srgb,${b.color} 60%,#000))">
       <span class="tag">${t("heroTag")}</span><h2>${esc(b.banner[L2()])}</h2><p>${t("heroP")}</p>
       <div class="hero-btns"><a class="hb" href="#/cats">${t("start")}</a><a class="hb ghost" href="tel:${b.phone.replace(/\D/g,"")}">📞 ${t("call")}</a></div>
       <span class="em">🛒</span></div></section>
@@ -230,7 +233,8 @@ function listFor(key, q){
   else if (key === "search") {
     const words = norm(q).split(/\s+/).filter(Boolean).map(w => SYN[w] || w);
     list = VIEW.filter(p => words.every(w => p.s.includes(w) || norm(catName(p.cat)).includes(w)));
-  } else list = VIEW.filter(p => p.cat === key);
+  } else if (key === "fresh") list = VIEW.filter(p => FRESH.includes(p.cat));
+  else list = VIEW.filter(p => p.cat === key);
   if (listState.stock) list = list.filter(p => p.stock);
   if (listState.sort === "low") list = [...list].sort((a,b) => a.price-b.price);
   if (listState.sort === "high") list = [...list].sort((a,b) => b.price-a.price);
@@ -240,7 +244,7 @@ function vList(key, q){
   const id = key + "|" + (q||"");
   if (listState.key !== id) listState = { key:id, n:PAGE, sort:"def", stock:false };
   const list = listFor(key, q);
-  const title = key==="deals" ? "🔥 "+t("deals") : key==="popular" ? "⭐ "+t("popular") : key==="search" ? `“${esc(q)}”` : `${catMeta(key)[1]} ${catName(key)}`;
+  const title = key==="fresh" ? "🥬🍎 "+(L2()==="ar"?"خضار وفواكه ومكسرات":"Fresh & nuts") : key==="deals" ? "🔥 "+t("deals") : key==="popular" ? "⭐ "+t("popular") : key==="search" ? `“${esc(q)}”` : `${catMeta(key)[1]} ${catName(key)}`;
   const counts = {}; VIEW.forEach(p => counts[p.cat] = 1);
   const tabs = key==="search" ? "" : `<nav class="tabs">${CATS.filter(c => counts[c[0]]).map(c => `<a href="#/c/${c[0]}" class="${c[0]===key?"on":""}">${c[ARIDX()]}</a>`).join("")}</nav>`;
   const pill = (v, label, on) => `<button class="pill ${on?"on":""}" data-sort="${v}">${label}</button>`;

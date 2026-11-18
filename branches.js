@@ -65,5 +65,5 @@ window.CATS = [
   ["baking","🌾","طحين ومواد الخَبز","Baking & Flours"],["grains","🫘","بقوليات","Beans & Lentils"],
   ["dairy","🧀","ألبان","Dairy"],["drinks","🥤","مشروبات","Drinks"],["vinegar","🧴","خل","Vinegar"],
   ["produce","🥬","خضار","Vegetables"],["perfume","🪔","عطور وبخور","Perfumes & Bakhoor"],
-  ["care","🧼","عناية شخصية","Personal Care"],["home","🏠","منزل ومطبخ","Home & Kitchen"],["other","🛒","متنوع","More"]
+  ["care","🧼","عناية شخصية","Personal Care"],["home","🏠","منزل ومطبخ","Home & Kitchen"],["fruit","🍎","فواكه","Fruits"],["other","🛒","متنوع","More"]
 ];

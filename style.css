@@ -338,3 +338,11 @@ img{display:block;max-width:100%}
 .sw::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
 .sw.on{background:var(--green-2,#1f7a4d)}
 .sw.on::after{inset-inline-start:21px}
+
+/* ── الخضار والفواكه والمكسرات ── */
+.fresh-bar{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:0 0 14px}
+.fresh-bar a{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:12px 6px;text-align:center;font-weight:800;font-size:.92rem;color:var(--ink);text-decoration:none}
+.fresh-bar .fresh-all{grid-column:1/-1;background:var(--red);border-color:var(--red);color:#fff}
+.card.est{border:1.5px solid #e75480}
+.card.est .price b{color:#e75480}
+.est-tag{display:inline-block;background:#fde4ec;color:#c2185b;border-radius:10px;padding:2px 8px;font-size:.72rem;font-weight:800;vertical-align:middle}

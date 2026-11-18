@@ -57,6 +57,7 @@ let favs = new Set(ls.get("favs", []));
 let userPos = null, nearestId = null;
 let ALL = [], CAT_IDS = [], byKey = new Map(), loaded = false;
 let listState = { key:"", n:PAGE, sort:"def", stock:false };
+let homeMix = null;
 
 const EXTRA = {
   ar: { free:"مجاني", pickup2:"الاستلام من الفرع", deliver:"التوصيل للمنزل", pickupTip:"الاستلام من الفرع مجاني. اتصل بالفرع أو أرسل رسالة واتساب قبل وصولك لتحدد وقتك.", freeOver:"التوصيل مجاني للطلبات فوق $50 داخل المنطقة، وإلا فالرسوم $5.", deliveryFee:"رسوم التوصيل", note:"ملاحظة لهذا المنتج (مقاس، نوع…)", shareCart:"📋 نسخة للمشاركة", shareList:"🔗 شارك قائمة التسوق", rate:"قيّم هذا المنتج:", rated:"شكرًا لتقييمك ✓", listTitle:"قائمة تسوق مشتركة", listAddAll:"أضف كل المنتجات إلى سلتي", welcome:"أهلًا بكم في الحرمين", welcomeP:"منتجات من أكثر من 30 دولة حول العالم", myRateNote:"تقييمك يُحفظ على هذا الجهاز" },
@@ -216,9 +217,15 @@ function vHome(){
   ["dates","rice","tea","spices","coffee","nuts","oils","perfume"].forEach(id => {
     const m = catMeta(id); h += rail(`${m[1]} ${catName(id)}`, stock.filter(p => p.cat === id), "#/c/"+id);
   });
-  const mix = [...stock];
-  for (let i = mix.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [mix[i], mix[j]] = [mix[j], mix[i]]; }
-  h += rail(L2() === "ar" ? "🎲 تصفح عشوائي" : "🎲 Browse mix", mix, "#/cats");
+  if (!homeMix || homeMix.key !== stock.length) {
+    const arr = [...stock];
+    for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+    homeMix = { key: stock.length, arr, n: PAGE };
+  }
+  const ar = L2() === "ar";
+  h += `<section class="sec"><div class="sec-h"><h2>${ar ? "🎲 تصفح عشوائي" : "🎲 Browse mix"}</h2></div>
+    <div class="grid">${homeMix.arr.slice(0, homeMix.n).map(card).join("")}</div>
+    ${homeMix.n < homeMix.arr.length ? `<div class="mix-more" data-hmore="1"></div>` : `<p class="mix-end">${ar ? "وصلت إلى نهاية المنتجات" : "You've reached the end of the products"}</p>`}</section>`;
   return h + `<p class="count" style="text-align:center">${t("priceNote")}</p>`;
 }
 function vCats(){
@@ -548,7 +555,11 @@ setInterval(() => { const c = document.querySelector(".sale-car"); if (c && !c.d
   document.addEventListener("touchend", e => { const c = e.target.closest && e.target.closest(".sale-car"); if (!c || x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40) carGo(c, dx < 0 ? 1 : -1); setTimeout(() => delete c.dataset.paused, 4000); }, { passive: true });
 })();
 // تحميل تلقائي عند الاقتراب من نهاية القائمة
-addEventListener("scroll", () => { const m = $("[data-more]"); if (m && m.getBoundingClientRect().top < innerHeight + 300) m.click(); }, { passive:true });
+addEventListener("scroll", () => {
+  const m = $("[data-more]"); if (m && m.getBoundingClientRect().top < innerHeight + 300) { m.click(); return; }
+  const hm = $("[data-hmore]");
+  if (hm && homeMix && hm.getBoundingClientRect().top < innerHeight + 300) { homeMix.n += PAGE; route(); }
+}, { passive:true });
 
 /* ── بدء التشغيل ── */
 $("#logo").src = "logo.png";
